@@ -32,3 +32,7 @@
 ## Graphical interface
 
 ### Required simple and pretty user interface, which includes queue input and result outout. Interface should be simple and intuitive
+
+## Notifications
+
+### Telegram integration for instant user notification about new announcements
