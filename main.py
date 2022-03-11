@@ -1,16 +1,11 @@
-import urllib.request
 import requests
 from bs4 import BeautifulSoup
 
-def GetCar():
-    url = 'https://moscow.drom.ru/bmw/3-series/46211372.html'
+def GetCar(url):
     headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36'}
     response = requests.get(url, headers=headers)
-    html = urllib.request.urlopen('https://auto.ru/cars/used/sale/bmw/3er/1106225141-3c6c8b75/')
-    #response.encoding = response.apparent_encoding
+    response.encoding = response.apparent_encoding
     soup = BeautifulSoup(response.text, 'lxml')
-    f = open('index.html', 'w')
-    f.write(html.url)
     crit_arr = ['Двигатель', 'Мощность', 'Пробег, км', 'Привод']
     data = soup.find_all('tr', class_='css-11ylakv ezjvm5n0')
     Features = {}
@@ -43,7 +38,7 @@ def GetCar():
         data = elem.find_all('td', class_ = 'css-7whdrf ezjvm5n1')
         return(data[0].text.strip())
 
-    arr.append(FindName())
+    Features['Имя'] = FindName()
     for elem in data:
         data1 = elem.find_all('th', class_='css-1y4xbwk ezjvm5n2')
         data0 = data1[0].text
