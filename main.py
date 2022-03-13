@@ -38,6 +38,10 @@ def GetCar(url):
         data = elem.find_all('td', class_ = 'css-7whdrf ezjvm5n1')
         return(data[0].text.strip())
 
+    def getAllHrefs(soupPage:BeautifulSoup):
+        return soupPage.find_all(href=True)
+
+
     Features['Имя'] = FindName()
     for elem in data:
         data1 = elem.find_all('th', class_='css-1y4xbwk ezjvm5n2')
@@ -55,3 +59,10 @@ def GetCar(url):
         if data0 == "Привод":
             Features['Привод'] = FindWD(elem)
     return Features
+
+headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36'}
+response = requests.get("https://www.drom.ru/", headers=headers)
+response.encoding = response.apparent_encoding
+soup = BeautifulSoup(response.text, 'lxml')
+
+print(getAllHrefs())
