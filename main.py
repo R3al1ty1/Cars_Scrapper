@@ -83,7 +83,7 @@ def brandsGet() -> set:
 
     geckodriverLocation = r"/Users/nasa/Documents/geckodriver" # Location of geckodriver
     firefoxProfile = r"/Users/nasa/Library/Application Support/Firefox/Profiles/0qtiw2tn.default" # Selected Firefox profile
-    brandNameCSSClass = 'css-1r0zrug e1uu17r80'
+    brandNameCSSClass = 'css-1r0zrug e1uu17r80' # Css class of element with car brand name
 
     service = Service(geckodriverLocation) # Setting up location
 
@@ -113,7 +113,7 @@ def brandsGet() -> set:
             except:
                 pass
 
-        scrollElement(brandsList, 8) # Scrolling list five times (emulation of pressing DOWN button five times)
+        scrollElement(brandsList, 8) # Scrolling list eight times (emulation of pressing DOWN button eight times)
 
     print(sorted(gatheredBrands))
     parser.quit()
