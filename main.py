@@ -1,6 +1,7 @@
 import requests
 from bs4 import BeautifulSoup
 from selenium import webdriver
+from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.firefox.service import Service
 from selenium.webdriver.firefox.options import Options
@@ -71,14 +72,30 @@ def GetCar(url):
 #
 # print(getAllHrefs())
 
-def pressButton(buttonClass):
+
+def scrollElement(el, times:int):
+    for _ in range(times):
+        el.send_keys(Keys.DOWN)
+
+def brandsGet(buttonClass:str) -> set:
     service = Service(r"/Users/nasa/Documents/geckodriver")
     options = Options()
     options.set_preference('profile', r"/Users/nasa/Library/Application Support/Firefox/Profiles/0qtiw2tn.default")
     parser = webdriver.Firefox(service=service, options=options)
     parser.get("https://auto.drom.ru")
-    el = parser.find_element_by_xpath("/html/body/div[2]/div[5]/div[1]/div[1]/div[3]/form/div/div[1]/div[1]/div/div[1]/input")
+    el = parser.find_element(by=By.XPATH, value="/html/body/div[2]/div[5]/div[1]/div[1]/div[3]/form/div/div[1]/div[1]/div/div[1]/input")
     el.send_keys(u" ")
-    #parser.quit()
+    brands = set()
+    for _ in range(50):
+        soup = BeautifulSoup(parser.page_source, 'lxml')
+        data = soup.find_all('div', class_='css-1r0zrug e1uu17r80')
+        for element in data:
+            try:
+                brands.add(element.text)
+            except:
+                pass
+        scrollElement(el, 5)
+    print(brands)
+    parser.quit()
 
-pressButton("css-rsmimg e1a8pcii0")
+brandsGet("css-rsmimg e1a8pcii0")
