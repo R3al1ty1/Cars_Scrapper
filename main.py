@@ -1,5 +1,9 @@
 import requests
 from bs4 import BeautifulSoup
+from selenium import webdriver
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.firefox.service import Service
+from selenium.webdriver.firefox.options import Options
 
 def GetCar(url):
     headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36'}
@@ -60,9 +64,21 @@ def GetCar(url):
             Features['Привод'] = FindWD(elem)
     return Features
 
-headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36'}
-response = requests.get("https://www.drom.ru/", headers=headers)
-response.encoding = response.apparent_encoding
-soup = BeautifulSoup(response.text, 'lxml')
+# headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36'}
+# response = requests.get("https://www.drom.ru/", headers=headers)
+# response.encoding = response.apparent_encoding
+# soup = BeautifulSoup(response.text, 'lxml')
+#
+# print(getAllHrefs())
 
-print(getAllHrefs())
+def pressButton(buttonClass):
+    service = Service(r"/Users/nasa/Documents/geckodriver")
+    options = Options()
+    options.set_preference('profile', r"/Users/nasa/Library/Application Support/Firefox/Profiles/0qtiw2tn.default")
+    parser = webdriver.Firefox(service=service, options=options)
+    parser.get("https://auto.drom.ru")
+    el = parser.find_element_by_xpath("/html/body/div[2]/div[5]/div[1]/div[1]/div[3]/form/div/div[1]/div[1]/div/div[1]/input")
+    el.send_keys(u" ")
+    #parser.quit()
+
+pressButton("css-rsmimg e1a8pcii0")
