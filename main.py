@@ -67,14 +67,6 @@ def GetCar(url):
             Features['Привод'] = FindWD(elem)
     return Features
 
-# headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36'}
-# response = requests.get("https://www.drom.ru/", headers=headers)
-# response.encoding = response.apparent_encoding
-# soup = BeautifulSoup(response.text, 'lxml')
-#
-# print(getAllHrefs())
-
-
 def scrollElement(selectedElement, times:int):
     for _ in range(times):
         selectedElement.send_keys(Keys.DOWN) # Emulating press of DOWN button for {times} times
@@ -95,11 +87,9 @@ def brandsGet() -> set:
 
     brandsList = parser.find_element(by=By.XPATH, value="/html/body/div[2]/div[5]/div[1]/div[1]/div[3]/form/div/div[1]/div[1]/div/div[1]/input") # Locating list element
     brandsList.send_keys(u" ") # Sending space to show up the list
-
     gatheredBrands = set() # Creating empty set of car brands
 
     for _ in range(50):
-
         soup = BeautifulSoup(parser.page_source, 'lxml') # Creating parser object
         data = soup.find_all('div', class_= brandNameCSSClass) # Looking for all elements with car brands name
 
@@ -112,7 +102,6 @@ def brandsGet() -> set:
                     gatheredBrands.add(txt) # Trying to get brand name from selected element, else passing to the next one
             except:
                 pass
-
         scrollElement(brandsList, 8) # Scrolling list eight times (emulation of pressing DOWN button eight times)
 
     print(sorted(gatheredBrands))
