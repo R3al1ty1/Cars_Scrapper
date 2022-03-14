@@ -5,6 +5,8 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.firefox.service import Service
 from selenium.webdriver.firefox.options import Options
+from transliterate import translit, get_available_language_codes
+
 
 def GetCar(url):
     headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36'}
@@ -73,29 +75,47 @@ def GetCar(url):
 # print(getAllHrefs())
 
 
-def scrollElement(el, times:int):
+def scrollElement(selectedElement, times:int):
     for _ in range(times):
-        el.send_keys(Keys.DOWN)
+        selectedElement.send_keys(Keys.DOWN) # Emulating press of DOWN button for {times} times
 
-def brandsGet(buttonClass:str) -> set:
-    service = Service(r"/Users/nasa/Documents/geckodriver")
+def brandsGet() -> set:
+
+    geckodriverLocation = r"/Users/nasa/Documents/geckodriver" # Location of geckodriver
+    firefoxProfile = r"/Users/nasa/Library/Application Support/Firefox/Profiles/0qtiw2tn.default" # Selected Firefox profile
+    brandNameCSSClass = 'css-1r0zrug e1uu17r80'
+
+    service = Service(geckodriverLocation) # Setting up location
+
     options = Options()
-    options.set_preference('profile', r"/Users/nasa/Library/Application Support/Firefox/Profiles/0qtiw2tn.default")
-    parser = webdriver.Firefox(service=service, options=options)
-    parser.get("https://auto.drom.ru")
-    el = parser.find_element(by=By.XPATH, value="/html/body/div[2]/div[5]/div[1]/div[1]/div[3]/form/div/div[1]/div[1]/div/div[1]/input")
-    el.send_keys(u" ")
-    brands = set()
+    options.set_preference('profile', firefoxProfile) # Setting up profile
+
+    parser = webdriver.Firefox(service=service, options=options) # Creating webdriver
+    parser.get("https://auto.drom.ru") # Getting web page
+
+    brandsList = parser.find_element(by=By.XPATH, value="/html/body/div[2]/div[5]/div[1]/div[1]/div[3]/form/div/div[1]/div[1]/div/div[1]/input") # Locating list element
+    brandsList.send_keys(u" ") # Sending space to show up the list
+
+    gatheredBrands = set() # Creating empty set of car brands
+
     for _ in range(50):
-        soup = BeautifulSoup(parser.page_source, 'lxml')
-        data = soup.find_all('div', class_='css-1r0zrug e1uu17r80')
+
+        soup = BeautifulSoup(parser.page_source, 'lxml') # Creating parser object
+        data = soup.find_all('div', class_= brandNameCSSClass) # Looking for all elements with car brands name
+
         for element in data:
             try:
-                brands.add(element.text)
+                txt = element.text # Getting raw text from element
+                if txt != '' and not "Прочие авто" in txt and not "Любая модель" in txt:
+                    txt = translit(txt, "ru", reversed=True) # Transliterating russian brands to english
+                    txt = txt[:txt.index("(")].strip() # Removing "(n)" structure from the brand name
+                    gatheredBrands.add(txt) # Trying to get brand name from selected element, else passing to the next one
             except:
                 pass
-        scrollElement(el, 5)
-    print(brands)
+
+        scrollElement(brandsList, 8) # Scrolling list five times (emulation of pressing DOWN button five times)
+
+    print(sorted(gatheredBrands))
     parser.quit()
 
-brandsGet("css-rsmimg e1a8pcii0")
+brandsGet()
