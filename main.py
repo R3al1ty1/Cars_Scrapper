@@ -7,6 +7,14 @@ from selenium.webdriver.firefox.service import Service
 from selenium.webdriver.firefox.options import Options
 from transliterate import translit, get_available_language_codes
 
+geckodriverLocation = r"/Users/user/Documents/geckodriver" # Location of geckodriver
+firefoxProfile = r"/Users/user/Library/Application Support/Firefox/Profiles/459ixwje.default" # Selected Firefox profile
+
+service = Service(geckodriverLocation) # Setting up location
+
+options = Options()
+options.set_preference('profile', firefoxProfile) # Setting up profile
+parser = webdriver.Firefox(service=service, options=options)  # Creating webdriver
 
 def GetCar(url):
     headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36'}
@@ -71,27 +79,16 @@ def scrollElement(selectedElement, times:int):
     for _ in range(times):
         selectedElement.send_keys(Keys.DOWN) # Emulating press of DOWN button for {times} times
 
-def brandsGet() -> set:
-
-    geckodriverLocation = r"/Users/nasa/Documents/geckodriver" # Location of geckodriver
-    firefoxProfile = r"/Users/nasa/Library/Application Support/Firefox/Profiles/0qtiw2tn.default" # Selected Firefox profile
-    brandNameCSSClass = 'css-1r0zrug e1uu17r80' # Css class of element with car brand name
-
-    service = Service(geckodriverLocation) # Setting up location
-
-    options = Options()
-    options.set_preference('profile', firefoxProfile) # Setting up profile
-
-    parser = webdriver.Firefox(service=service, options=options) # Creating webdriver
-    parser.get("https://auto.drom.ru") # Getting web page
+def brandsGet(parser) -> set:
+    parser.get("https://auto.drom.ru")  # Getting web page
 
     brandsList = parser.find_element(by=By.XPATH, value="/html/body/div[2]/div[5]/div[1]/div[1]/div[3]/form/div/div[1]/div[1]/div/div[1]/input") # Locating list element
     brandsList.send_keys(u" ") # Sending space to show up the list
     gatheredBrands = set() # Creating empty set of car brands
 
-    for _ in range(50):
+    for _ in range(20):
         soup = BeautifulSoup(parser.page_source, 'lxml') # Creating parser object
-        data = soup.find_all('div', class_= brandNameCSSClass) # Looking for all elements with car brands name
+        data = soup.find_all('div', class_= 'css-1r0zrug e1uu17r80') # Looking for all elements with car brands name
 
         for element in data:
             try:
@@ -103,8 +100,35 @@ def brandsGet() -> set:
             except:
                 pass
         scrollElement(brandsList, 8) # Scrolling list eight times (emulation of pressing DOWN button eight times)
+    return(sorted(gatheredBrands))
 
-    print(sorted(gatheredBrands))
+def modelsGet(brand,parser) -> set:
+    brand = brand.lower().replace(" ","_")
+    parser.get(f"https://auto.drom.ru/{brand}/")# Getting web page
+    try:
+        brandsList = parser.find_element(by=By.XPATH, value="/html/body/div[2]/div[5]/div[1]/div[1]/div[2]/form/div/div[1]/div[2]/div/div[1]/input")
+    except selenium.common.exceptions.NoSuchElementException:
+
+         brandsList = parser.find_element(by=By.XPATH,
+                                         value="/html/body/div[2]/div[4]/div[1]/div[1]/div[2]/form/div/div[1]/div[2]/div/div[1]/input")
+    except:
+        print("Ошибка")
+    brandsList.send_keys(u" ")
+    gatheredBrands = set()
+    for _ in range(20):
+        soup = BeautifulSoup(parser.page_source, 'lxml') # Creating parser object
+        data = soup.find_all('div', class_= 'css-2qi5nz e154wmfa0') # Looking for all elements with car brands name
+        data1 = data[0].find_all('div', class_= 'css-1r0zrug e1uu17r80')
+        for element in data1:
+            try:
+                txt = element.text # Getting raw text from element
+                if txt != '' and not "Прочие авто" in txt:
+                    txt = translit(txt, "ru", reversed=True) # Transliterating russian brands to english
+                    txt = txt[:txt.index("(")].strip() # Removing "(n)" structure from the brand name
+                    gatheredBrands.add(txt) # Trying to get brand name from selected element, else passing to the next one
+            except:
+                pass
+        scrollElement(brandsList, 8)
+    return(sorted(gatheredBrands))
     parser.quit()
-
-brandsGet()
+print(modelsGet('Toyota',parser))
