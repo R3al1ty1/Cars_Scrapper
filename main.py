@@ -14,7 +14,7 @@ service = Service(geckodriverLocation) # Setting up location
 
 options = Options()
 options.set_preference('profile', firefoxProfile) # Setting up profile
-parser = webdriver.Firefox(service=service, options=options)  # Creating webdriver
+#parser = webdriver.Firefox(service=service, options=options)  # Creating webdriver
 
 def GetCar(url):
     headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36'}
@@ -107,14 +107,11 @@ def modelsGet(brand,parser) -> set:
     parser.get(f"https://auto.drom.ru/{brand}/")# Getting web page
     try:
         brandsList = parser.find_element(by=By.XPATH, value="/html/body/div[2]/div[5]/div[1]/div[1]/div[2]/form/div/div[1]/div[2]/div/div[1]/input")
-    except selenium.common.exceptions.NoSuchElementException:
-
+    except:
          brandsList = parser.find_element(by=By.XPATH,
                                          value="/html/body/div[2]/div[4]/div[1]/div[1]/div[2]/form/div/div[1]/div[2]/div/div[1]/input")
-    except:
-        print("Ошибка")
-    brandsList.send_keys(u" ")
-    gatheredBrands = set()
+    modelsList.send_keys(u" ")
+    gatheredModels = set()
     for _ in range(20):
         soup = BeautifulSoup(parser.page_source, 'lxml') # Creating parser object
         data = soup.find_all('div', class_= 'css-2qi5nz e154wmfa0') # Looking for all elements with car brands name
@@ -125,10 +122,58 @@ def modelsGet(brand,parser) -> set:
                 if txt != '' and not "Прочие авто" in txt:
                     txt = translit(txt, "ru", reversed=True) # Transliterating russian brands to english
                     txt = txt[:txt.index("(")].strip() # Removing "(n)" structure from the brand name
-                    gatheredBrands.add(txt) # Trying to get brand name from selected element, else passing to the next one
+                    gatheredModels.add(txt) # Trying to get brand name from selected element, else passing to the next one
             except:
                 pass
-        scrollElement(brandsList, 8)
-    return(sorted(gatheredBrands))
-    parser.quit()
-print(modelsGet('Toyota',parser))
+        scrollElement(modelsList, 8)
+    return(sorted(gatheredModels))
+
+def generationGet(brand,model) -> set:
+    brand = brand.lower().replace(" ", "_")
+    model = model.lower().replace(" ", "_")
+    url = f'https://auto.drom.ru/{brand}/{model}/'
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36'}
+    response = requests.get(url, headers=headers)
+    # parser.get(f"https://auto.drom.ru/{brand}/{model}/")  # Getting web page
+    # try:
+    #     generationsList = parser.find_element(by=By.XPATH, value="/html/body/div[2]/div[4]/div[1]/div[1]/div[2]/form/div/div[1]/div[3]/div/div/div[1]/button")
+    # except:
+    #      generationsList = parser.find_element(by=By.XPATH,
+    #                                      value="/html/body/div[2]/div[4]/div[1]/div[1]/div[2]/form/div/div[1]/div[3]/div/div/div[1]/button")
+    #generationsList.click()
+    #gatheredGenerations = set()
+    #soup = BeautifulSoup(parser.page_source, 'lxml')  # Creating parser object
+    generationsArr = []
+    dct = []
+    i1 = 1
+    while True:
+        if requests.get(f'{url}/generation{i1}/').status_code != "404":
+            i2 = 1
+            dct[i1].append(0)
+            while True:
+                if requests.get(f'{url}/generation{i1}/restyling{i2}').status_code != "404":
+                    dct[i1].append[i2]
+                    i2 += 1
+                else:
+                    break
+            i1 += 1
+        else:
+            break
+    return dct
+    #data = soup.find_all('div', class_='css-q7s5zv e1i4uopi1')  # Looking for all elements with car brands name
+    #data1 = data[0].find_all('div', class_='css-1xktnf etjsiba1')
+    #if data == []:
+    #    data = soup.find_all('div', class_='css-2qi5nz e154wmfa0')
+    #    data1 = data[0].find_all('div', class_='css-1b1okqd e1x0dvi10')
+    #for element in data1:
+    #    try:
+    #        txt = element.text  # Getting raw text from element
+    #        if txt != '' and not "Любое поколение" in txt:
+    #            txt = translit(txt, "ru", reversed=True)  # Transliterating russian brands to english
+    #            txt = txt[:txt.index("(")].strip()  # Removing "(n)" structure from the brand name
+    #            gatheredGenerations.add(txt)  # Trying to get brand name from selected element, else passing to the next one
+    #    except:
+    #        pass
+    #return(sorted(gatheredGenerations))
+print(generationGet('Toyota','Camry'))
