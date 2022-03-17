@@ -135,6 +135,7 @@ def generationGet(brand,model) -> list:
     url = f'https://auto.drom.ru/{brand}/{model}/'
     ArrOfGenerations = []
     FinalArr = []
+    NewArr = []
     headers = {
         'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36'}
     response = requests.get(url, headers=headers)
@@ -147,25 +148,6 @@ def generationGet(brand,model) -> list:
     generationsList.click()
     gatheredGenerations = list()
     soup = BeautifulSoup(parser.page_source, 'lxml')  # Creating parser object
-    # generationsArr = []
-    # dct = []
-    # i1 = 1
-    # while True:
-    #     if requests.get(f'{url}generation{i1}/').status_code != "404":
-    #         i2 = 1
-    #         dct.append(0)
-    #         while True:
-    #             if requests.get(f'{url}generation{i1}/restyling{i2}').status_code != "404":
-    #                 dct.append(i2)
-    #             else:
-    #                 break
-    #             i2 += 1
-    #             print(f'{url}generation{i1}/restyling{i2}')
-    #         i1 += 1
-    #         print('Жора пидор')
-    #     else:
-    #         break
-    # return dct
     is_simplified = True
     data = soup.find_all('div', class_='css-2qi5nz e154wmfa0')  # Looking for all elements with car brands name
     if data == []:
@@ -204,22 +186,48 @@ def generationGet(brand,model) -> list:
                 pass
     cnt = 0
     if is_simplified:
+        number = 0
         for elem in gatheredGenerations:
             if elem[0] == "-":
-                ArrOfGenerations.append(elem)
+                if "restajling" not in elem:
+                    RestNumber = 0
+                    Years = elem[2:].strip()
+                else:
+                    SplitOfGenerationAndYears = elem.split(",")
+                    if "-j " not in SplitOfGenerationAndYears[0]:
+                        RestNumber = 1
+                        Years = SplitOfGenerationAndYears[1].strip()
+                    else:
+                        RestNumber = int(SplitOfGenerationAndYears[0][2])
+                        Years = SplitOfGenerationAndYears[1].strip()
+                FinalArr.append([Number, RestNumber,Frame, Years])
             else:
-                FinalArr.append(ArrOfGenerations)
-                ArrOfGenerations = []
-                ArrOfGenerations.append(elem)
-        FinalArr.pop(0)
+                Number = int(elem[:elem.index(" ")])
+                Frame = elem[elem.index("(") + 1 : elem.index(")")]
+
     else:
         for elem in gatheredGenerations:
             ArrOfGenerations.append(elem)
             cnt += 1
             if cnt == 2:
-                FinalArr.append(ArrOfGenerations)
+                NewArr.append(ArrOfGenerations)
                 ArrOfGenerations = []
                 cnt = 0
+        for i in range(len(NewArr)):
+            SplitOfGenerationAndRestyling = NewArr[i][1].split(",")
+            Number = int(SplitOfGenerationAndRestyling[0][0])
+            if len(SplitOfGenerationAndRestyling) == 1:
+                RestNumber = 0
+            else:
+                if "-j " not in SplitOfGenerationAndRestyling[1]:
+                    RestNumber = 1
+                else:
+                    RestNumber = int(SplitOfGenerationAndRestyling[1][1])
+            SplitOfYearsAndFrame = NewArr[i][0].split(",",1)
+            Frame = SplitOfYearsAndFrame[1].strip()
+            Years = SplitOfYearsAndFrame[0].strip()
+            FinalArr.append([Number, RestNumber, Frame, Years])
+        print("Жора пидор")
     return(FinalArr)
 print(generationGet('Toyota','Camry'))
 parser.quit()
