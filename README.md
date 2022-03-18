@@ -33,6 +33,9 @@
 * Power of car
 * Cylinders number
 * Volume of engine
+* 
+* ### Side Params (Could be done later)
+* 
 * Ecology class
 * Equipment
 * Clearence
