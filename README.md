@@ -14,13 +14,36 @@
 * drom.ru
 * avito.ru
 
-### Required params
+### Required params (If param does not exist on page, use placeholders)
 
 * Mileage
 * Release year
-* How many owners
+* Owners number
+* Is car wanted?
+* Car specifications compared to car passport
+* Frame name
+* Frame type
 * Transmission Type
+* Drive Type (Rear, Front or 4WD)
 * Fuel used for the car
+* Date of advert publish
+* Tax
+* Steering wheel side
+* Color
+* Power of car
+* Cylinders number
+* Volume of engine
+* Ecology class
+* Equipment
+* Clearence
+* Fuel Consumption
+* Trunk volume
+* Wheels characteristic
+* Passenger capacity
+* Car dimensions
+* Car weight
+* Fuel tank volume
+* Brakes type
 
 ## Neural Networks
 
