@@ -18,17 +18,21 @@ options.set_preference('profile', firefoxProfile) # Setting up profile
 parser = webdriver.Firefox(service=service, options=options)  # Creating webdriver
 
 def GetCar(url):
+    """
+    Требуется переименовать все dataN в нормальные названия, добавить уточнения к переменным с характеристиками машины (like Fuel -> TypeOfFuel)
+    Ну и комментарии на английском языке (мне можно на русском, так будет проще)
+    """
     headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36'}
     response = requests.get(url, headers=headers)
     response.encoding = response.apparent_encoding
     soup = BeautifulSoup(response.text, 'lxml')
-    crit_arr = ['Двигатель', 'Мощность', 'Пробег, км', 'Привод']
-    data = soup.find_all('tr', class_='css-11ylakv ezjvm5n0')
-    Features = {}
+    crit_arr = ['Двигатель', 'Мощность', 'Пробег, км', 'Привод'] # TODO Непонятное имя переменной + Дополнить список другими необходимыми данными со страницы (readme в помощь)
+    data = soup.find_all('tr', class_='css-11ylakv ezjvm5n0') # TODO Непонятное имя переменной
+    Features = {} # TODO Непонятное имя переменной
     def FindName():
         global soup
-        data = soup.find_all('h1', class_='css-1tplio9 e18vbajn0')
-        data1 = data[0].find_all('span')[0].text
+        data = soup.find_all('h1', class_='css-1tplio9 e18vbajn0') # TODO Непонятное имя переменной
+        data1 = data[0].find_all('span')[0].text # TODO Непонятное имя переменной
         data1 = data1.split(',')
         data1[0] = data1[0].replace('Продажа', '')
         return(data1[0].strip())
@@ -39,14 +43,14 @@ def GetCar(url):
         data = elem.find_all('td', class_ = 'css-7whdrf ezjvm5n1')
         data1 = data[0].find_all('span')[0].text
         data1 = data1.split(',')
-        Fuel = data1[0]
-        Volume = data1[1]
+        Fuel = data1[0] # TODO Что за fuel? Требуется уточнить
+        Volume = data1[1] # TODO Тут тоже самое
         Volume = Volume.replace('л', '')
         return(Fuel.strip(), Volume.strip())
     def FindPower(elem):
         data = elem.find_all('td', class_ = 'css-7whdrf ezjvm5n1')
         data1 = data[0].find_all('span')
-        temp = data1[0].text
+        temp = data1[0].text # TODO Назови как-то человечно или просто замени temp на _
         temp = temp.replace('налог', '')
         temp = temp.replace(',', '')
         return(temp.strip())
@@ -54,7 +58,7 @@ def GetCar(url):
         data = elem.find_all('td', class_ = 'css-7whdrf ezjvm5n1')
         return(data[0].text.strip())
 
-    def getAllHrefs(soupPage:BeautifulSoup):
+    def getAllHrefs(soupPage:BeautifulSoup): # TODO Useless функция, лишний легаси код сразу удаляем, это касается и ненужных закоментированных кусков кода
         return soupPage.find_all(href=True)
 
 
@@ -104,7 +108,7 @@ def brandsGet(parser) -> set:
     return(sorted(gatheredBrands))
 
 def modelsGet(brand,parser) -> set:
-    brand = brand.lower().replace(" ","_")
+    brand = brand.lower().replace(" ","_") # TODO Требуется уточнение перменной like selectedBrand or something same to this one
     parser.get(f"https://auto.drom.ru/{brand}/")# Getting web page
     try:
         brandsList = parser.find_element(by=By.XPATH, value="/html/body/div[2]/div[5]/div[1]/div[1]/div[2]/form/div/div[1]/div[2]/div/div[1]/input")
@@ -130,11 +134,11 @@ def modelsGet(brand,parser) -> set:
     return(sorted(gatheredModels))
 
 def generationGet(brand,model) -> list:
-    brand = brand.lower().replace(" ", "_")
+    brand = brand.lower().replace(" ", "_") # TODO Как и предыдущей функции, selectedBrand and selectedModel.  
     model = model.lower().replace(" ", "_")
     url = f'https://auto.drom.ru/{brand}/{model}/'
     ArrOfGenerations = []
-    FinalArr = []
+    FinalArr = [] # TODO Много говномассивов, ненужные удалить, нужные переименовать
     NewArr = []
     headers = {
         'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36'}
@@ -196,7 +200,7 @@ def generationGet(brand,model) -> list:
                     SplitOfGenerationAndYears = elem.split(",")
                     if "-j " not in SplitOfGenerationAndYears[0]:
                         RestNumber = 1
-                        Years = SplitOfGenerationAndYears[1].strip()
+                        Years = SplitOfGenerationAndYears[1].strip() # TODO Кто такой Years? Переименовать
                     else:
                         RestNumber = int(SplitOfGenerationAndYears[0][2])
                         Years = SplitOfGenerationAndYears[1].strip()
@@ -231,3 +235,12 @@ def generationGet(brand,model) -> list:
     return(FinalArr)
 print(generationGet('Toyota','Camry'))
 parser.quit()
+
+"""
+TODO
+P.S. Даю ПОЛНОЕ вето на все нейминги с data. Все старые переименовать в адекватные названия и больше такой ужас не использовать.
+И еще: 
+1) Проведи форматирование кода через инструменты PyCharm.
+2) Нужно все переменные и функции привести к единому стилю https://skillbox.ru/media/code/notatsii-v-programmirovanii/
+
+"""
