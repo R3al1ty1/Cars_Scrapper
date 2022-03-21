@@ -50,10 +50,13 @@
 
 ## Neural Networks
 
+## Additional analysis
+
 ### Required tasks
 
 * Analyze car conditions in case of photos and output car conditions in points (0-64 points, where 0 is worst and 64 is the best)
 * Analyse description text and output chance of car problems (0-64, where 0 is very problematic car and 64 is best car ever)
+* Gather data from media and recognize pros and cons from each article
 
 ## Graphical interface
 
