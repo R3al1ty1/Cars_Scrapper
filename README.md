@@ -65,3 +65,11 @@
 ## Notifications
 
 ### Telegram integration for instant user notification about new announcements
+
+## Learning of Postgres (both)
+
+* Create the DB of all cars on the website and configs for models. (essential)
+* Download DB
+* ML from Required tasks
+* Reseller checker
+* News analysis (brand mentions)
