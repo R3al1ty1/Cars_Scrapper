@@ -145,10 +145,11 @@ def generationGet(brand,model) -> list:
     response = requests.get(url, headers=headers)
     parser.get(f"https://auto.drom.ru/{brand}/{model}/")  # Getting web page
     try:
-        generationsList = parser.find_element(by=By.XPATH, value="/html/body/div[2]/div[4]/div[1]/div[1]/div[2]/form/div/div[1]/div[3]/div/div/div[1]/button")
+        generationsList = parser.find_element(by=By.XPATH,
+                                        value="/html/body/div[2]/div[4]/div[1]/div[1]/div[2]/form/div/div[1]/div[3]/div/div/div[1]/button")
     except:
-         generationsList = parser.find_element(by=By.XPATH,
-                                         value="/html/body/div[2]/div[4]/div[1]/div[1]/div[2]/form/div/div[1]/div[3]/div/div/div[1]/button")
+        generationsList = parser.find_element(by=By.XPATH,
+                                        value="/html/body/div[2]/div[4]/div[1]/div[1]/div[2]/form/div/div[1]/div[3]/div/div/div[1]/button")
     generationsList.click()
     gatheredGenerations = list()
     soup = BeautifulSoup(parser.page_source, 'lxml')  # Creating parser object
@@ -167,7 +168,6 @@ def generationGet(brand,model) -> list:
                txt = txt.replace('\xa0','')# Getting raw text from element
                if txt != '' and not "Любое поколение" in txt:
                    txt = translit(txt, "ru", reversed=True)  # Transliterating russian brands to english
-                   #txt = txt[:txt.index("(")].strip()  # Removing "(n)" structure from the brand name
                    gatheredGenerations.append(txt)  # Trying to get brand name from selected element, else passing to the next one
             except:
                pass
@@ -179,7 +179,6 @@ def generationGet(brand,model) -> list:
                 txt = txt.replace('\xa0','')# Getting raw text from element
                 if txt != '' and not "Любое поколение" in txt:
                    txt = translit(txt, "ru", reversed=True)  # Transliterating russian brands to english
-                   #txt = txt[:txt.index("(")].strip()  # Removing "(n)" structure from the brand name
                    gatheredGenerations.append(txt)  # Trying to get brand name from selected element, else passing to the next one
                 txt = data3[0].text  # Getting raw text from element
                 if txt != '' and not "Любое поколение" in txt:
@@ -231,7 +230,6 @@ def generationGet(brand,model) -> list:
             Frame = SplitOfYearsAndFrame[1].strip()
             Years = SplitOfYearsAndFrame[0].strip()
             FinalArr.append([Number, RestNumber, Frame, Years])
-        print("Жора пидор")
     return(FinalArr)
 print(generationGet('Toyota','Camry'))
 parser.quit()
