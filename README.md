@@ -18,7 +18,8 @@
 
 * Mileage
 * Release year
-* Owners number
+* Owner's number
+* Is owner selling the car?
 * Is car wanted?
 * Car specifications compared to car passport
 * Frame name
