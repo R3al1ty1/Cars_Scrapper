@@ -1,4 +1,5 @@
 import psycopg2
+from peewee import Model, ModelBase
 
 class connectionDB:
     def __init__(self):
@@ -15,5 +16,17 @@ class connectionDB:
         curs.execute(f"INSERT INTO main.ads (id,url) VALUES ({id},{url})")
         self.connection.commit()
 
-con = connectionDB()
-con.insert(1,"\'Yarik\'")
+connection = psycopg2.connect(
+            host = "194.87.102.109",
+            database = "CarsDB",
+            user = "postgres",
+            password = "CarsScrapper123!",
+        )
+# class BaseModel(Model):
+#     class Meta:
+#         database = connection
+#
+# class main.ads(ModelBase):
+#
+# con = connectionDB()
+# con.insert(1,"\'Yarik\'")
