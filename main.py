@@ -17,68 +17,63 @@ options.headless = True
 options.set_preference('profile', firefoxProfile) # Setting up profile
 parser = webdriver.Firefox(service=service, options=options)  # Creating webdriver
 
-def GetCar(url):
+def getCar(url):
     """
-    Требуется переименовать все dataN в нормальные названия, добавить уточнения к переменным с характеристиками машины (like Fuel -> TypeOfFuel)
+    Требуется переименовать все dataN в нормальные названия, добавить уточнения к переменным с характеристиками машины (like fuelType -> TypeOffuelType)
     Ну и комментарии на английском языке (мне можно на русском, так будет проще)
     """
     headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36'}
     response = requests.get(url, headers=headers)
     response.encoding = response.apparent_encoding
     soup = BeautifulSoup(response.text, 'lxml')
-    crit_arr = ['Двигатель', 'Мощность', 'Пробег, км', 'Привод'] # TODO Непонятное имя переменной + Дополнить список другими необходимыми данными со страницы (readme в помощь)
-    data = soup.find_all('tr', class_='css-11ylakv ezjvm5n0') # TODO Непонятное имя переменной
-    Features = {} # TODO Непонятное имя переменной
-    def FindName():
+    fieldOfSearch = soup.find_all('tr', class_='css-11ylakv ezjvm5n0') #specific row where data is stored (engine, engine volume, mileage etc.)
+    foundCarFeatures = {}
+    def findName():
         global soup
-        data = soup.find_all('h1', class_='css-1tplio9 e18vbajn0') # TODO Непонятное имя переменной
-        data1 = data[0].find_all('span')[0].text # TODO Непонятное имя переменной
-        data1 = data1.split(',')
-        data1[0] = data1[0].replace('Продажа', '')
-        return(data1[0].strip())
-    def FindMileage(elem):
-        data = elem.find_all('td', class_ = 'css-7whdrf ezjvm5n1')
-        return(data[0].text.strip())
-    def FindVolume(elem):
-        data = elem.find_all('td', class_ = 'css-7whdrf ezjvm5n1')
-        data1 = data[0].find_all('span')[0].text
-        data1 = data1.split(',')
-        Fuel = data1[0] # TODO Что за fuel? Требуется уточнить
-        Volume = data1[1] # TODO Тут тоже самое
-        Volume = Volume.replace('л', '')
-        return(Fuel.strip(), Volume.strip())
-    def FindPower(elem):
-        data = elem.find_all('td', class_ = 'css-7whdrf ezjvm5n1')
-        data1 = data[0].find_all('span')
-        temp = data1[0].text # TODO Назови как-то человечно или просто замени temp на _
-        temp = temp.replace('налог', '')
-        temp = temp.replace(',', '')
-        return(temp.strip())
-    def FindWD(elem):
-        data = elem.find_all('td', class_ = 'css-7whdrf ezjvm5n1')
-        return(data[0].text.strip())
+        titleName = soup.find_all('h1', class_='css-1tplio9 e18vbajn0')
+        carName = titleName[0].find_all('span')[0].text
+        carName = carName.split(',')
+        carName[0] = carName[0].replace('Продажа', '')
+        return(carName[0].strip())
+    def findMileage(elem):
+        mileage = elem.find_all('td', class_ = 'css-7whdrf ezjvm5n1')
+        return(mileage[0].text.strip())
+    def findVolume(elem):
+        engineFieldOfSearch = elem.find_all('td', class_ = 'css-7whdrf ezjvm5n1')
+        engineSpecs = engineFieldOfSearch[0].find_all('span')[0].text
+        engineSpecs = engineSpecs.split(',')
+        fuelType = engineSpecs[0]
+        engineVolume = engineSpecs[1]
+        engineVolume = engineVolume.replace('л', '')
+        return(fuelType.strip(), engineVolume.strip())
+    def findPower(elem):
+        powerFieldOfSearch = elem.find_all('td', class_ = 'css-7whdrf ezjvm5n1')
+        enginePower = powerFieldOfSearch[0].find_all('span')
+        textFormatOfPower = enginePower[0].text
+        textFormatOfPower = textFormatOfPower.replace('налог', '')
+        textFormatOfPower = textFormatOfPower.replace(',', '')
+        return(textFormatOfPower.strip())
+    def findWD(elem):
+        carWheelDrive = elem.find_all('td', class_ = 'css-7whdrf ezjvm5n1')
+        return(carWheelDrive[0].text.strip())
 
-    def getAllHrefs(soupPage:BeautifulSoup): # TODO Useless функция, лишний легаси код сразу удаляем, это касается и ненужных закоментированных кусков кода
-        return soupPage.find_all(href=True)
-
-
-    Features['Имя'] = FindName()
-    for elem in data:
-        data1 = elem.find_all('th', class_='css-1y4xbwk ezjvm5n2')
+    foundCarFeatures['Имя'] = findName()
+    for gatheredCarFeature in fieldOfSearch:
+        data1 = gatheredCarFeature.find_all('th', class_='css-1y4xbwk ezjvm5n2')
         data0 = data1[0].text
         if data0 == "Двигатель":
-            Features['Двигатель'] = FindVolume(elem)
+            foundCarFeatures['Двигатель'] = findEngineVolume(gatheredCarFeature)
         if data0 == "Мощность":
-            res = FindVolume(elem)
-            Fuel = res[0]
-            Volume = res[1]
-            Features['Топливо'] = Fuel
-            Features['Объем'] = Volume
+            res = findEngineVolume(gatheredCarFeature)
+            fuelType = res[0]
+            engineVolume = res[1]
+            foundCarFeatures['Топливо'] = fuelType
+            foundCarFeatures['Объем'] = engineVolume
         if data0 == "Пробег, км":
-            Features['Пробег, км'] = FindMileage(elem)
+            foundCarFeatures['Пробег, км'] = findMileage(gatheredCarFeature)
         if data0 == "Привод":
-            Features['Привод'] = FindWD(elem)
-    return Features
+            foundCarFeatures['Привод'] = findWD(gatheredCarFeature)
+    return foundCarFeatures
 
 def scrollElement(selectedElement, times:int):
     for _ in range(times):
@@ -93,9 +88,9 @@ def brandsGet(parser) -> set:
 
     for _ in range(20):
         soup = BeautifulSoup(parser.page_source, 'lxml') # Creating parser object
-        data = soup.find_all('div', class_= 'css-1r0zrug e1uu17r80') # Looking for all elements with car brands name
+        brandName = soup.find_all('div', class_= 'css-1r0zrug e1uu17r80') # Looking for all elements with car brands name
 
-        for element in data:
+        for element in brandName:
             try:
                 txt = element.text # Getting raw text from element
                 if txt != '' and not "Прочие авто" in txt and not "Любая модель" in txt:
@@ -107,9 +102,9 @@ def brandsGet(parser) -> set:
         scrollElement(brandsList, 8) # Scrolling list eight times (emulation of pressing DOWN button eight times)
     return(sorted(gatheredBrands))
 
-def modelsGet(brand,parser) -> set:
-    brand = brand.lower().replace(" ","_") # TODO Требуется уточнение перменной like selectedBrand or something same to this one
-    parser.get(f"https://auto.drom.ru/{brand}/")# Getting web page
+def modelsGet(currentBrand,parser) -> set:
+    currentBrand = currentBrand.lower().replace(" ","_")
+    parser.get(f"https://auto.drom.ru/{currentBrand}/")# Getting web page
     try:
         brandsList = parser.find_element(by=By.XPATH, value="/html/body/div[2]/div[5]/div[1]/div[1]/div[2]/form/div/div[1]/div[2]/div/div[1]/input")
     except:
@@ -119,9 +114,9 @@ def modelsGet(brand,parser) -> set:
     gatheredModels = set()
     for _ in range(20):
         soup = BeautifulSoup(parser.page_source, 'lxml') # Creating parser object
-        data = soup.find_all('div', class_= 'css-2qi5nz e154wmfa0') # Looking for all elements with car brands name
-        data1 = data[0].find_all('div', class_= 'css-1r0zrug e1uu17r80')
-        for element in data1:
+        brandNameClass = soup.find_all('div', class_= 'css-2qi5nz e154wmfa0') # Looking for all elements with car brands name
+        brandName = brandNameClass[0].find_all('div', class_= 'css-1r0zrug e1uu17r80')
+        for element in brandName:
             try:
                 txt = element.text # Getting raw text from element
                 if txt != '' and not "Прочие авто" in txt:
@@ -133,17 +128,17 @@ def modelsGet(brand,parser) -> set:
         scrollElement(modelsList, 8)
     return(sorted(gatheredModels))
 
-def generationGet(brand,model) -> list:
-    brand = brand.lower().replace(" ", "_") # TODO Как и предыдущей функции, selectedBrand and selectedModel.  
+def generationGet(currentBrand,model) -> list:
+    currentBrand = currentBrand.lower().replace(" ", "_")
     model = model.lower().replace(" ", "_")
-    url = f'https://auto.drom.ru/{brand}/{model}/'
-    ArrOfGenerations = []
-    FinalArr = [] # TODO Много говномассивов, ненужные удалить, нужные переименовать
-    NewArr = []
+    url = f'https://auto.drom.ru/{currentBrand}/{model}/'
+    arrOfGenerations = []
+    finalArr = []
+    newArr = []
     headers = {
         'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36'}
     response = requests.get(url, headers=headers)
-    parser.get(f"https://auto.drom.ru/{brand}/{model}/")  # Getting web page
+    parser.get(f"https://auto.drom.ru/{currentBrand}/{model}/")  # Getting web page
     try:
         generationsList = parser.find_element(by=By.XPATH,
                                         value="/html/body/div[2]/div[4]/div[1]/div[1]/div[2]/form/div/div[1]/div[3]/div/div/div[1]/button")
@@ -153,16 +148,16 @@ def generationGet(brand,model) -> list:
     generationsList.click()
     gatheredGenerations = list()
     soup = BeautifulSoup(parser.page_source, 'lxml')  # Creating parser object
-    is_simplified = True
-    data = soup.find_all('div', class_='css-2qi5nz e154wmfa0')  # Looking for all elements with car brands name
-    if data == []:
-        data = soup.find_all('div', class_='css-q7s5zv e1i4uopi1')
-        data1 = data[0].find_all('div', class_='css-1xktnf etjsiba1')
-        is_simplified = False
+    isSimplified = True
+    brandName = soup.find_all('div', class_='css-2qi5nz e154wmfa0')  # Looking for all elements with car brands name
+    if brandName == []:
+        brandNameClass = soup.find_all('div', class_='css-q7s5zv e1i4uopi1')
+        brandName = brandNameClass[0].find_all('div', class_='css-1xktnf etjsiba1')
+        isSimplified = False
     else:
-        data1 = data[0].find_all('div', class_='css-1b1okqd e1x0dvi10')
-    for element in data1:
-        if is_simplified:
+        brandName = brandNameClass[0].find_all('div', class_='css-1b1okqd e1x0dvi10')
+    for element in brandName:
+        if isSimplified:
             try:
                txt = element.text
                txt = txt.replace('\xa0','')# Getting raw text from element
@@ -183,62 +178,61 @@ def generationGet(brand,model) -> list:
                 txt = data3[0].text  # Getting raw text from element
                 if txt != '' and not "Любое поколение" in txt:
                     txt = translit(txt, "ru", reversed=True)  # Transliterating russian brands to english
-                    # txt = txt[:txt.index("(")].strip()  # Removing "(n)" structure from the brand name
                     gatheredGenerations.append(txt)  # Trying to get brand name from selected element, else passing to the next one
             except:
                 pass
     cnt = 0
-    if is_simplified:
+    if isSimplified:
         number = 0
         for elem in gatheredGenerations:
             if elem[0] == "-":
                 if "restajling" not in elem:
-                    RestNumber = 0
+                    restNumber = 0
                     Years = elem[2:].strip()
                 else:
-                    SplitOfGenerationAndYears = elem.split(",")
-                    if "-j " not in SplitOfGenerationAndYears[0]:
-                        RestNumber = 1
-                        Years = SplitOfGenerationAndYears[1].strip() # TODO Кто такой Years? Переименовать
+                    splitOfGenerationAndYears = elem.split(",")
+                    if "-j " not in splitOfGenerationAndYears[0]:
+                        restNumber = 1
+                        Years = splitOfGenerationAndYears[1].strip()
                     else:
-                        RestNumber = int(SplitOfGenerationAndYears[0][2])
-                        Years = SplitOfGenerationAndYears[1].strip()
-                FinalArr.append([Number, RestNumber,Frame, Years])
+                        restNumber = int(splitOfGenerationAndYears[0][2])
+                        Years = splitOfGenerationAndYears[1].strip()
+                finalArr.append([Number, restNumber,Frame, Years])
             else:
                 Number = int(elem[:elem.index(" ")])
                 Frame = elem[elem.index("(") + 1 : elem.index(")")]
 
     else:
         for elem in gatheredGenerations:
-            ArrOfGenerations.append(elem)
+            arrOfGenerations.append(elem)
             cnt += 1
             if cnt == 2:
-                NewArr.append(ArrOfGenerations)
-                ArrOfGenerations = []
+                newArr.append(arrOfGenerations)
+                arrOfGenerations = []
                 cnt = 0
-        for i in range(len(NewArr)):
-            SplitOfGenerationAndRestyling = NewArr[i][1].split(",")
-            Number = int(SplitOfGenerationAndRestyling[0][0])
-            if len(SplitOfGenerationAndRestyling) == 1:
-                RestNumber = 0
+        for i in range(len(newArr)):
+            splitOfGenerationAndRestyling = newArr[i][1].split(",")
+            Number = int(splitOfGenerationAndRestyling[0][0])
+            if len(splitOfGenerationAndRestyling) == 1:
+                restNumber = 0
             else:
-                if "-j " not in SplitOfGenerationAndRestyling[1]:
-                    RestNumber = 1
+                if "-j " not in splitOfGenerationAndRestyling[1]:
+                    restNumber = 1
                 else:
-                    RestNumber = int(SplitOfGenerationAndRestyling[1][1])
-            SplitOfYearsAndFrame = NewArr[i][0].split(",",1)
-            Frame = SplitOfYearsAndFrame[1].strip()
-            Years = SplitOfYearsAndFrame[0].strip()
-            FinalArr.append([Number, RestNumber, Frame, Years])
-    return(FinalArr)
-print(generationGet('Toyota','Camry'))
-parser.quit()
+                    restNumber = int(splitOfGenerationAndRestyling[1][1])
+            splitOfYearsAndFrame = newArr[i][0].split(",",1)
+            Frame = splitOfYearsAndFrame[1].strip()
+            Years = splitOfYearsAndFrame[0].strip()
+            finalArr.append([Number, restNumber, Frame, Years])
+    return(finalArr)
+#print(generationGet('Toyota','Camry'))
 
+print(getCar('https://moscow.drom.ru/toyota/camry/46333584.html'))
+parser.quit()
 """
 TODO
 P.S. Даю ПОЛНОЕ вето на все нейминги с data. Все старые переименовать в адекватные названия и больше такой ужас не использовать.
 И еще: 
 1) Проведи форматирование кода через инструменты PyCharm.
-2) Нужно все переменные и функции привести к единому стилю https://skillbox.ru/media/code/notatsii-v-programmirovanii/
 
 """
