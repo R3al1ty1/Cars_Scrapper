@@ -49,6 +49,9 @@
 * Fuel tank volume
 * Brakes type
 
+## <-> IMPORTANT <->
+### Advertisment index - sum of all points of advertisment analysis, defines betterness and priority of selected ad
+
 ## Neural Networks
 
 ## Additional analysis
