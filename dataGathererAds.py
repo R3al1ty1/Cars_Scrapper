@@ -1,57 +1,51 @@
 import time
 from datetime import datetime
-from tqdm import tqdm
 
 import psycopg2
-# import faster_than_requests as requests
-import requests as requests
+#import faster_than_requests as requests
+import requests
 import threading
+from proxyToolkit import Proxynator
 
-requests.adapters.DEFAULT_RETRIES = 1
-def threaded(id:int, conn:psycopg2.connect, session:requests.session()):
+def threaded(id:int, conn:psycopg2.connect, proxy:str):
     cur = conn.cursor()
     url = f"https://moscow.drom.ru/volkswagen/touareg/{id}.html"
-    answer = session.head(url, timeout=2)
+    proxies = {
+        "http":proxy,
+        "https":proxy
+    }
+    try:
+        answer = requests.get(url, proxies=proxies, timeout=20)
+    except:
+        return
+    time.sleep(1)
     if answer.status_code == 200:
         cur.execute(f"INSERT INTO main.ads (id,url) VALUES ({id},'{url}')")
         conn.commit()
     elif answer.status_code == 429:
-        print(answer.status_code,answer.reason)
-
-#"194.87.102.109"
+        print("Too many")
 
 connection = psycopg2.connect(
-            host = "localhost",
+            host = "194.87.102.109",
             database = "CarsDB",
             user = "postgres",
             password = "CarsScrapper123!",
         )
-session = requests.Session()
-session.keep_alive = False
+
 threads = []
 start_time = datetime.now()
-for i in range(50):
-    t = threading.Thread(target=threaded, args=(36930000 + i, connection, session))
+proxynator = Proxynator(100)
+# print(proxynator)
+print("Started Threads generation")
+for i in range(200):
+    t = threading.Thread(target=threaded, args=(10**7 + i, connection, next(proxynator)))
     t.daemon = True
     threads.append(t)
     t.start()
-# for x in range(1000):
-#     t = threading.Thread(target=threaded, args=(10**7 + x, connection))
-#     t.daemon = True
-#     threads.append(t)
-#     t.start()
-# while len(threads) > 0:
-#     threads[0].join()
-#     if cnt < mx:
-#         t = threading.Thread(target=threaded, args=(10 ** 7 + cnt, connection))
-#         t.daemon = True
-#         threads.append(t)
-#         t.start()
-#         threads.pop(0)
-#         cnt += 1
-#         print(cnt)
-ln = len(threads)
-for i in tqdm(range(ln)):
-    threads[i].join()
+print("Launched")
+middle_time = datetime.now()
+for thread in threads:
+    thread.join()
 end_time = datetime.now()
+print(middle_time-start_time)
 print(end_time-start_time)
