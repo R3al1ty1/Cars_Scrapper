@@ -13,7 +13,7 @@ class connectionDB:
         return self.connection.cursor()
     def insert(self,id,url):
         curs = self.getCursor()
-        curs.execute(f"INSERT INTO main.ads (id,url) VALUES ({id},{url})")
+        curs.execute(f"INSERT INTO main.ads (id,url) VALUES ({id},'{url}')")
         self.connection.commit()
 
 connection = psycopg2.connect(
