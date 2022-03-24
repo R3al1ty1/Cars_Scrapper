@@ -18,10 +18,6 @@ options.set_preference('profile', firefoxProfile) # Setting up profile
 parser = webdriver.Firefox(service=service, options=options)  # Creating webdriver
 
 def getCar(url):
-    """
-    Требуется переименовать все dataN в нормальные названия, добавить уточнения к переменным с характеристиками машины (like fuelType -> TypeOffuelType)
-    Ну и комментарии на английском языке (мне можно на русском, так будет проще)
-    """
     headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36'}
     response = requests.get(url, headers=headers)
     response.encoding = response.apparent_encoding
@@ -29,36 +25,35 @@ def getCar(url):
     fieldOfSearch = soup.find_all('tr', class_='css-11ylakv ezjvm5n0') #specific row where data is stored (engine, engine volume, mileage etc.)
     foundCarFeatures = {}
     def findName():
-        #global soup
         titleName = soup.find_all('h1', class_='css-1tplio9 e18vbajn0')
         carName = titleName[0].find_all('span')[0].text
         carName = carName.split(',')
         carName[0] = carName[0].replace('Продажа', '')
         return(carName[0].strip())
-    def findMileage(elem):
-        mileage = elem.find_all('td', class_ = 'css-7whdrf ezjvm5n1')
+    def findMileage(fieldOfSearch):
+        mileage = fieldOfSearch.find_all('td', class_ = 'css-7whdrf ezjvm5n1')
         textForamtOfMileage = mileage[0].text
         textForamtOfMileage = textForamtOfMileage.replace('\xa0', '').strip()
         textForamtOfMileage = int(textForamtOfMileage)
         return(textForamtOfMileage)
-    def findVolume(elem):
-        engineFieldOfSearch = elem.find_all('td', class_ = 'css-7whdrf ezjvm5n1')
+    def findVolume(fieldOfSearch):
+        engineFieldOfSearch = fieldOfSearch.find_all('td', class_ = 'css-7whdrf ezjvm5n1')
         engineSpecs = engineFieldOfSearch[0].find_all('span')[0].text
         engineSpecs = engineSpecs.split(',')
         fuelType = engineSpecs[0]
         engineVolume = engineSpecs[1]
         engineVolume = engineVolume.replace('л', '')
         return(fuelType.strip(), engineVolume.strip())
-    def findPower(elem):
-        powerFieldOfSearch = elem.find_all('td', class_ = 'css-7whdrf ezjvm5n1')
+    def findPower(fieldOfSearch):
+        powerFieldOfSearch = fieldOfSearch.find_all('td', class_ = 'css-7whdrf ezjvm5n1')
         enginePower = powerFieldOfSearch[0].find_all('span')
         textFormatOfPower = enginePower[0].text
         textFormatOfPower = textFormatOfPower.replace('налог', '')
         textFormatOfPower = textFormatOfPower.replace(',', '')
         textFormatOfPower = textFormatOfPower.replace('\xa0', ' ')
         return(textFormatOfPower.strip())
-    def findWD(elem):
-        carWheelDrive = elem.find_all('td', class_ = 'css-7whdrf ezjvm5n1')
+    def findWD(fieldOfSearch):
+        carWheelDrive = fieldOfSearch.find_all('td', class_ = 'css-7whdrf ezjvm5n1')
         return(carWheelDrive[0].text.strip())
 
     foundCarFeatures['Имя'] = findName()
@@ -168,15 +163,15 @@ def generationGet(currentBrand,model) -> list:
             except:
                pass
         else:
-            data2 = element.find_all('div', class_='css-t5fg4a e162wx9x0')
-            data3 = element.find_all('div', class_='css-1bnzx52 e162wx9x0')
+            prodYearsModel = element.find_all('div', class_='css-t5fg4a e162wx9x0')
+            genAndRestyling = element.find_all('div', class_='css-1bnzx52 e162wx9x0')
             try:
-                txt = data2[0].text
+                txt = prodYearsModel[0].text
                 txt = txt.replace('\xa0','')# Getting raw text from element
                 if txt != '' and not "Любое поколение" in txt:
                    txt = translit(txt, "ru", reversed=True)  # Transliterating russian brands to english
                    gatheredGenerations.append(txt)  # Trying to get brand name from selected element, else passing to the next one
-                txt = data3[0].text  # Getting raw text from element
+                txt = genAndRestyling[0].text  # Getting raw text from element
                 if txt != '' and not "Любое поколение" in txt:
                     txt = translit(txt, "ru", reversed=True)  # Transliterating russian brands to english
                     gatheredGenerations.append(txt)  # Trying to get brand name from selected element, else passing to the next one
@@ -229,10 +224,3 @@ def generationGet(currentBrand,model) -> list:
 #print(generationGet('Toyota','Camry'))
 print(getCar('https://moscow.drom.ru/toyota/camry/46333584.html'))
 parser.quit()
-"""
-TODO
-P.S. Даю ПОЛНОЕ вето на все нейминги с data. Все старые переименовать в адекватные названия и больше такой ужас не использовать.
-И еще: 
-1) Проведи форматирование кода через инструменты PyCharm.
-
-"""
