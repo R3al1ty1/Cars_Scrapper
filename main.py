@@ -29,7 +29,7 @@ def getCar(url):
     fieldOfSearch = soup.find_all('tr', class_='css-11ylakv ezjvm5n0') #specific row where data is stored (engine, engine volume, mileage etc.)
     foundCarFeatures = {}
     def findName():
-        global soup
+        #global soup
         titleName = soup.find_all('h1', class_='css-1tplio9 e18vbajn0')
         carName = titleName[0].find_all('span')[0].text
         carName = carName.split(',')
@@ -37,7 +37,10 @@ def getCar(url):
         return(carName[0].strip())
     def findMileage(elem):
         mileage = elem.find_all('td', class_ = 'css-7whdrf ezjvm5n1')
-        return(mileage[0].text.strip())
+        textForamtOfMileage = mileage[0].text
+        textForamtOfMileage = textForamtOfMileage.replace('\xa0', '').strip()
+        textForamtOfMileage = int(textForamtOfMileage)
+        return(textForamtOfMileage)
     def findVolume(elem):
         engineFieldOfSearch = elem.find_all('td', class_ = 'css-7whdrf ezjvm5n1')
         engineSpecs = engineFieldOfSearch[0].find_all('span')[0].text
@@ -52,6 +55,7 @@ def getCar(url):
         textFormatOfPower = enginePower[0].text
         textFormatOfPower = textFormatOfPower.replace('налог', '')
         textFormatOfPower = textFormatOfPower.replace(',', '')
+        textFormatOfPower = textFormatOfPower.replace('\xa0', ' ')
         return(textFormatOfPower.strip())
     def findWD(elem):
         carWheelDrive = elem.find_all('td', class_ = 'css-7whdrf ezjvm5n1')
@@ -59,19 +63,16 @@ def getCar(url):
 
     foundCarFeatures['Имя'] = findName()
     for gatheredCarFeature in fieldOfSearch:
-        data1 = gatheredCarFeature.find_all('th', class_='css-1y4xbwk ezjvm5n2')
-        data0 = data1[0].text
-        if data0 == "Двигатель":
-            foundCarFeatures['Двигатель'] = findEngineVolume(gatheredCarFeature)
-        if data0 == "Мощность":
-            res = findEngineVolume(gatheredCarFeature)
-            fuelType = res[0]
-            engineVolume = res[1]
-            foundCarFeatures['Топливо'] = fuelType
-            foundCarFeatures['Объем'] = engineVolume
-        if data0 == "Пробег, км":
+        requestedCarFeature = gatheredCarFeature.find_all('th', class_='css-1y4xbwk ezjvm5n2')
+        textOfRequestedCarFeature = requestedCarFeature[0].text
+        if textOfRequestedCarFeature == "Двигатель":
+            foundCarFeatures['Топливо'] = findVolume(gatheredCarFeature)[0]
+            foundCarFeatures['Объем'] = findVolume(gatheredCarFeature)[1]
+        if textOfRequestedCarFeature == "Мощность":
+            foundCarFeatures['Мощность'] = findPower(gatheredCarFeature)
+        if textOfRequestedCarFeature == "Пробег, км":
             foundCarFeatures['Пробег, км'] = findMileage(gatheredCarFeature)
-        if data0 == "Привод":
+        if textOfRequestedCarFeature == "Привод":
             foundCarFeatures['Привод'] = findWD(gatheredCarFeature)
     return foundCarFeatures
 
@@ -149,8 +150,8 @@ def generationGet(currentBrand,model) -> list:
     gatheredGenerations = list()
     soup = BeautifulSoup(parser.page_source, 'lxml')  # Creating parser object
     isSimplified = True
-    brandName = soup.find_all('div', class_='css-2qi5nz e154wmfa0')  # Looking for all elements with car brands name
-    if brandName == []:
+    brandNameClass = soup.find_all('div', class_='css-2qi5nz e154wmfa0')  # Looking for all elements with car brands name
+    if brandNameClass == []:
         brandNameClass = soup.find_all('div', class_='css-q7s5zv e1i4uopi1')
         brandName = brandNameClass[0].find_all('div', class_='css-1xktnf etjsiba1')
         isSimplified = False
@@ -226,7 +227,6 @@ def generationGet(currentBrand,model) -> list:
             finalArr.append([Number, restNumber, Frame, Years])
     return(finalArr)
 #print(generationGet('Toyota','Camry'))
-
 print(getCar('https://moscow.drom.ru/toyota/camry/46333584.html'))
 parser.quit()
 """
