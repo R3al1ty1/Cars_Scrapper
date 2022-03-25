@@ -8,48 +8,51 @@
 3. Find the best one
 4. Use ML for that shit
 
+---
+
 ### Required Websites analysis
 
 * auto.ru
 * drom.ru
 * avito.ru
 
+---
+
 ### Required params (If param does not exist on page, use placeholders)
 
-* Mileage
-* Release year
-* Owner's number
-* Is owner selling the car?
-* Is car wanted?
-* Car specifications compared to car passport
-* Frame name
-* Frame type
-* Transmission Type
-* Drive Type (Rear, Front or 4WD)
-* Fuel used for the car
-* Date of advert publish
-* Tax
-* Steering wheel side
-* Color
-* Power of car
-* Cylinders number
-* Volume of engine
-* 
-* ### Side Params (Could be done later)
-* 
-* Ecology class
-* Equipment
-* Clearence
-* Fuel Consumption
-* Trunk volume
-* Wheels characteristic
-* Passenger capacity
-* Car dimensions
-* Car weight
-* Fuel tank volume
-* Brakes type
+- [ ] Mileage
+- [ ] Release year
+- [ ] Owner's number
+- [ ] Is owner selling the car?
+- [ ] Is car wanted?
+- [ ] Car specifications compared to car passport
+- [ ] Frame type
+- [ ] Transmission Type
+- [ ] Drive Type (Rear, Front or 4WD)
+- [ ] Fuel used for the car
+- [ ] Date of advert publish
+- [ ] Tax
+- [ ] Steering wheel side
+- [ ] Color
+- [ ] Power of car
+- [ ] Volume of engine
+---
+### Side Params (Could be done later)
+- [ ] Cylinders number
+- [ ] Frame name
+- [ ] Ecology class
+- [ ] Equipment
+- [ ] Clearence
+- [ ] Fuel Consumption
+- [ ] Trunk volume
+- [ ] Wheels characteristic
+- [ ] Passenger capacity
+- [ ] Car dimensions
+- [ ] Car weight
+- [ ] Fuel tank volume
+- [ ] Brakes type
 
-## <-> IMPORTANT <->
+## **IMPORTANT**
 ### Advertisment index - sum of all points of advertisment analysis, defines betterness and priority of selected ad
 
 ## Neural Networks
