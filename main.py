@@ -28,8 +28,15 @@ def getCar(url):
         titleName = soup.find_all('h1', class_='css-1tplio9 e18vbajn0')
         carName = titleName[0].find_all('span')[0].text
         carName = carName.split(',')
-        carName[0] = carName[0].replace('Продажа', '')
-        return(carName[0].strip())
+        nameOfCar = carName[0].replace('Продажа', '')
+        return(nameOfCar.strip())
+    def findYear():
+        titleName = soup.find_all('h1', class_='css-1tplio9 e18vbajn0')
+        carName = titleName[0].find_all('span')[0].text
+        carName = carName.split(',')
+        yearOfProduction = carName[1][0:5]
+        yearOfProduction = int(yearOfProduction)
+        return (yearOfProduction)
     def findMileage(fieldOfSearch):
         mileage = fieldOfSearch.find_all('td', class_ = 'css-7whdrf ezjvm5n1')
         textForamtOfMileage = mileage[0].text
@@ -55,8 +62,23 @@ def getCar(url):
     def findWD(fieldOfSearch):
         carWheelDrive = fieldOfSearch.find_all('td', class_ = 'css-7whdrf ezjvm5n1')
         return(carWheelDrive[0].text.strip())
+    def findColor(fieldOfSearch):
+        carColor = fieldOfSearch.find_all('td', class_ = 'css-7whdrf ezjvm5n1')
+        return(carColor[0].text.strip())
+    # def findEquipment(fieldOfSearch):
+    #     arrOfEquipment = []
+    #     carEquipmentClass = fieldOfSearch.find_all('a', class_ = 'css-1n9bvfr e1oy5ngb0')
+    #     carEquipment = carEquipmentClass[0]
+    #     linkForEquipment = carEquipment.get('href')
+    #     response = requests.get(linkForEquipment, headers=headers)
+    #     response.encoding = response.apparent_encoding
+    #     soup = BeautifulSoup(response.text, 'lxml')
+    #     fuelConsumptionClass = soup.find_all('div', class_ = 'b-model-specs__icon b-ico b-ico_type_car-sedan')
+    #     fuelConsumption = fuelConsumptionClass[0].find_all('div', class_ = 'b-model-specs__text').text
+    #     return(fuelConsumptionClass)
 
     foundCarFeatures['Имя'] = findName()
+    foundCarFeatures['Год'] = findYear()
     for gatheredCarFeature in fieldOfSearch:
         requestedCarFeature = gatheredCarFeature.find_all('th', class_='css-1y4xbwk ezjvm5n2')
         textOfRequestedCarFeature = requestedCarFeature[0].text
@@ -69,6 +91,8 @@ def getCar(url):
             foundCarFeatures['Пробег, км'] = findMileage(gatheredCarFeature)
         if textOfRequestedCarFeature == "Привод":
             foundCarFeatures['Привод'] = findWD(gatheredCarFeature)
+        if textOfRequestedCarFeature == "Цвет":
+            foundCarFeatures['Цвет'] = findColor(gatheredCarFeature)
     return foundCarFeatures
 
 def scrollElement(selectedElement, times:int):
