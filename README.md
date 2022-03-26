@@ -22,21 +22,21 @@
 ### Required params (If param does not exist on page, use placeholders)
 
 - [X] Mileage
-- [ done ] Release year
-- [ ] Owner's number
-- [ ] Is owner selling the car?
-- [ ] Is car wanted?
-- [ ] Car specifications compared to car passport
-- [ done ] Frame type
-- [ done ] Transmission Type
-- [ done ] Drive Type (Rear, Front or 4WD)
-- [ done ] Fuel used for the car
-- [ done ] Date of advert publish
-- [ ] Tax
-- [ ] Steering wheel side
-- [ done ] Color
-- [ done ] Power of car
-- [ done ] Volume of engine
+- [X] Release year
+- [X] Owner's number
+- [X] Is owner selling the car?
+- [X] Number of registrations
+- [X] Car specifications compared to car passport
+- [X] Frame type
+- [X] Transmission Type
+- [X] Drive Type (Rear, Front or 4WD)
+- [X] Fuel used for the car
+- [X] Date of advert publish
+- [X] Tax
+- [X] Steering wheel side
+- [X] Color
+- [X] Power of car
+- [X] Volume of engine
 ---
 ### Side Params (Could be done later)
 - [ ] Cylinders number
