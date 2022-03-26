@@ -6,7 +6,7 @@
 1.  Get all avalable cars from query
 2. Save all cars to the database
 3. Find the best one
-4. Use ML for that shit
+4. Use ML for that
 
 ---
 
@@ -20,22 +20,22 @@
 
 ### Required params (If param does not exist on page, use placeholders)
 
-- [ ] Mileage
-- [ ] Release year
+- [ done ] Mileage
+- [ done ] Release year
 - [ ] Owner's number
 - [ ] Is owner selling the car?
 - [ ] Is car wanted?
 - [ ] Car specifications compared to car passport
-- [ ] Frame type
-- [ ] Transmission Type
-- [ ] Drive Type (Rear, Front or 4WD)
-- [ ] Fuel used for the car
-- [ ] Date of advert publish
+- [ done ] Frame type
+- [ done ] Transmission Type
+- [ done ] Drive Type (Rear, Front or 4WD)
+- [ done ] Fuel used for the car
+- [ done ] Date of advert publish
 - [ ] Tax
 - [ ] Steering wheel side
-- [ ] Color
-- [ ] Power of car
-- [ ] Volume of engine
+- [ done ] Color
+- [ done ] Power of car
+- [ done ] Volume of engine
 ---
 ### Side Params (Could be done later)
 - [ ] Cylinders number
