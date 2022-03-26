@@ -25,8 +25,8 @@
 - [X] Release year
 - [X] Owner's number
 - [X] Is owner selling the car?
-- [ ] Is car wanted?
-- [ ] Car specifications compared to car passport
+- [X] Number of registrations
+- [X] Car specifications compared to car passport
 - [X] Frame type
 - [X] Transmission Type
 - [X] Drive Type (Rear, Front or 4WD)
