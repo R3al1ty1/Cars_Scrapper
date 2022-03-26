@@ -20,7 +20,7 @@
 
 ### Required params (If param does not exist on page, use placeholders)
 
-- [ done ] Mileage
+- [X] Mileage
 - [ done ] Release year
 - [ ] Owner's number
 - [ ] Is owner selling the car?
