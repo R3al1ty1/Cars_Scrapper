@@ -6,51 +6,58 @@
 1.  Get all avalable cars from query
 2. Save all cars to the database
 3. Find the best one
-4. Use ML for that shit
+4. Use ML for that
+
+---
 
 ### Required Websites analysis
 
 * auto.ru
 * drom.ru
 * avito.ru
+* mobile.de
+
+---
 
 ### Required params (If param does not exist on page, use placeholders)
 
-* Mileage
-* Release year
-* Owner's number
-* Is owner selling the car?
-* Is car wanted?
-* Car specifications compared to car passport
-* Frame name
-* Frame type
-* Transmission Type
-* Drive Type (Rear, Front or 4WD)
-* Fuel used for the car
-* Date of advert publish
-* Tax
-* Steering wheel side
-* Color
-* Power of car
-* Cylinders number
-* Volume of engine
-* 
-* ### Side Params (Could be done later)
-* 
-* Ecology class
-* Equipment
-* Clearence
-* Fuel Consumption
-* Trunk volume
-* Wheels characteristic
-* Passenger capacity
-* Car dimensions
-* Car weight
-* Fuel tank volume
-* Brakes type
+- [X] Mileage
+- [ done ] Release year
+- [ ] Owner's number
+- [ ] Is owner selling the car?
+- [ ] Is car wanted?
+- [ ] Car specifications compared to car passport
+- [ done ] Frame type
+- [ done ] Transmission Type
+- [ done ] Drive Type (Rear, Front or 4WD)
+- [ done ] Fuel used for the car
+- [ done ] Date of advert publish
+- [ ] Tax
+- [ ] Steering wheel side
+- [ done ] Color
+- [ done ] Power of car
+- [ done ] Volume of engine
+---
+### Side Params (Could be done later)
+- [ ] Cylinders number
+- [ ] Frame name
+- [ ] Ecology class
+- [ ] Equipment
+- [ ] Clearence
+- [ ] Fuel Consumption
+- [ ] Trunk volume
+- [ ] Wheels characteristic
+- [ ] Passenger capacity
+- [ ] Car dimensions
+- [ ] Car weight
+- [ ] Fuel tank volume
+- [ ] Brakes type
 
-## <-> IMPORTANT <->
+## **IMPORTANT**
 ### Advertisment index - sum of all points of advertisment analysis, defines betterness and priority of selected ad
+
+## Import costs calculation
+### If selected car should be imported from the foreign country, script should sum car price with import fees and estimated delivery cost
 
 ## Neural Networks
 
