@@ -16,7 +16,7 @@ firefoxProfile = r"/Users/Nasa/Library/Application Support/Firefox/Profiles/459i
 service = Service(geckodriverLocation) # Setting up location
 
 options = Options()
-options.headless = True
+options.headless = False
 options.set_preference('profile', firefoxProfile) # Setting up profile
 parser = webdriver.Firefox(service=service, options=options)  # Creating webdriver
 
@@ -24,7 +24,7 @@ def yandexCaptchaPass(parser):
     try:
         button = parser.find_element(by=By.CLASS_NAME, value="CheckboxCaptcha-Button")
         button.click()
-        time.sleep(3)
+        time.sleep(1)
     except:
         return
 
@@ -127,15 +127,10 @@ def getCar(url):
         if textFormatOfSide == "левый":
             isLeftSided = True
         return isLeftSided
-    def reportAnalyzer(fieldOfSearch):
-        reportParams = fieldOfSearch.find_all('span', class_ = 'Link VinReportFreeBlockItem__text')[0].text.lower()
-        carPassportChecker = False
-        if reportParams[5].text[1] == ' ':
-            registrationsNumber = int(reportParams[5].text[0])
-        else:
-            registrationsNumber = int(reportParams[5].text[:2])
-        if reportParams[4].text == "Характеристики  совпадают с ПТС":
-            carPassportChecker = True
+    def reportAnalyzer():
+        reportParams = soup.find_all('span', class_ = 'Link VinReportFreeBlockItem__text')
+        carPassportChecker = "не" not in reportParams[0].text
+        registrationsNumber = reportParams[3].text.split()[0]
         return(registrationsNumber, carPassportChecker)
     # def findEquipment(fieldOfSearch):
     #     arrOfEquipment = []
@@ -153,9 +148,8 @@ def getCar(url):
     foundCarFeatures['Год'] = findYear()
     foundCarFeatures['Дата публикации'] = findDateOfPublishment()
 
-    # foundCarFeatures['Совпадение с ПТС'] = reportAnalyzer(soup)[1]
-    # foundCarFeatures['Кол-во регистраций'] = reportAnalyzer(soup)[0]
-    # for gatheredCarFeature in fieldOfSearch:
+    foundCarFeatures['Совпадение с ПТС'] = reportAnalyzer()[1]
+    foundCarFeatures['Кол-во регистраций'] = reportAnalyzer()[0]
     foundCarFeatures['Объем'], hp, foundCarFeatures['Топливо'] = findEngineParams()
     foundCarFeatures['Мощность, л.с.'] = hp
     foundCarFeatures['Налог'] = computeTax(hp)
@@ -165,60 +159,52 @@ def getCar(url):
     foundCarFeatures['Левый руль?'] = steeringWheelSide()
     return foundCarFeatures
 
-def scrollElement(selectedElement, times:int):
-    for _ in range(times):
-        selectedElement.send_keys(Keys.DOWN) # Emulating press of DOWN button for {times} times
-
 def brandsGet(parser) -> set:
-    parser.get("https://auto.drom.ru")  # Getting web page
+    """
+    Gets all models from car brand page
+    :param parser: Selenium parser object
+    :return: Set of found brands
+    """
+    parser.get("https://auto.ru/himki/cars/all/")  # Getting web page
+    yandexCaptchaPass(parser)
+    brandsList = parser.find_element(by=By.XPATH, value = "//div[2]/div[2]/div[1]/div/div/div/div/div[1]")
+    button = brandsList.find_element(by=By.CLASS_NAME, value="Select__button")
+    button.click()# Click to show up the list
+    time.sleep(2)
+    brandsElemets = parser.find_element(by=By.CLASS_NAME, value="Select__menu")
+    soup = BeautifulSoup(parser.page_source, 'lxml')
+    brands = set(map(lambda x: x.text, soup.find_all("div", class_="Menu__group")[-1].find_all("div","MenuItem MenuItem_size_m")))
 
-    brandsList = parser.find_element(by=By.XPATH, value="/html/body/div[2]/div[5]/div[1]/div[1]/div[3]/form/div/div[1]/div[1]/div/div[1]/input") # Locating list element
-    brandsList.send_keys(u" ") # Sending space to show up the list
-    gatheredBrands = set() # Creating empty set of car brands
+    return(sorted(brands))
 
-    for _ in range(20):
-        soup = BeautifulSoup(parser.page_source, 'lxml') # Creating parser object
-        brandName = soup.find_all('div', class_= 'css-1r0zrug e1uu17r80') # Looking for all elements with car brands name
-
-        for element in brandName:
-            try:
-                txt = element.text # Getting raw text from element
-                if txt != '' and not "Прочие авто" in txt and not "Любая модель" in txt:
-                    txt = translit(txt, "ru", reversed=True) # Transliterating russian brands to english
-                    txt = txt[:txt.index("(")].strip() # Removing "(n)" structure from the brand name
-                    gatheredBrands.add(txt) # Trying to get brand name from selected element, else passing to the next one
-            except:
-                pass
-        scrollElement(brandsList, 8) # Scrolling list eight times (emulation of pressing DOWN button eight times)
-    return(sorted(gatheredBrands))
-
-def modelsGet(currentBrand,parser) -> set:
+def modelsGet(currentBrand:str,parser:webdriver.Firefox) -> set:
+    """
+    Gets all models from car brand page
+    :param currentBrand: Name of selected car brand
+    :param parser: Selenium parser object
+    :return: Set of found models
+    """
     currentBrand = currentBrand.lower().replace(" ","_")
-    parser.get(f"https://auto.drom.ru/{currentBrand}/")# Getting web page
-    try:
-        modelsList = parser.find_element(by=By.XPATH, value="/html/body/div[2]/div[5]/div[1]/div[1]/div[2]/form/div/div[1]/div[2]/div/div[1]/input")
-    except:
-        modelsList = parser.find_element(by=By.XPATH,
-                                         value="/html/body/div[2]/div[4]/div[1]/div[1]/div[2]/form/div/div[1]/div[2]/div/div[1]/input")
-    modelsList.send_keys(u" ")
-    gatheredModels = set()
-    for _ in range(20):
-        soup = BeautifulSoup(parser.page_source, 'lxml') # Creating parser object
-        brandNameClass = soup.find_all('div', class_= 'css-2qi5nz e154wmfa0') # Looking for all elements with car brands name
-        brandName = brandNameClass[0].find_all('div', class_= 'css-1r0zrug e1uu17r80')
-        for element in brandName:
-            try:
-                txt = element.text # Getting raw text from element
-                if txt != '' and not "Прочие авто" in txt:
-                    txt = translit(txt, "ru", reversed=True) # Transliterating russian brands to english
-                    txt = txt[:txt.index("(")].strip() # Removing "(n)" structure from the brand name
-                    gatheredModels.add(txt) # Trying to get brand name from selected element, else passing to the next one
-            except:
-                pass
-        scrollElement(modelsList, 8)
-    return(sorted(gatheredModels))
+    parser.get(f"https://auto.ru/himki/cars/{currentBrand}/all/")  # Getting web page
+    yandexCaptchaPass(parser)
+    modelsList = parser.find_element(by=By.XPATH, value="/html/body/div[2]/div/div[2]/div[3]/div[2]/div/div[2]/div/div[2]/div[2]/div[1]/div/div/div/div/div[2]")
+    button = modelsList.find_element(by=By.CLASS_NAME, value="Select__button")
+    button.click()  # Click to show up the list
+    time.sleep(2)
+    brandsElemets = parser.find_element(by=By.CLASS_NAME, value="Select__menu")
+    soup = BeautifulSoup(parser.page_source, 'lxml')
+    models = set(map(lambda x: x.text,
+                     soup.find_all("div", class_="Menu__group")[-1].find_all("div", "MenuItem MenuItem_size_m")))
 
-def generationGet(currentBrand,model) -> list:
+    return (sorted(models))
+
+def generationGet(currentBrand:str,model:str) -> list:
+    """
+    Not completed yet
+    :param currentBrand: Name of car brand
+    :param model: Name of car model
+    :return: List of avalable generations
+    """
     currentBrand = currentBrand.lower().replace(" ", "_")
     model = model.lower().replace(" ", "_")
     url = f'https://auto.drom.ru/{currentBrand}/{model}/'
@@ -316,5 +302,6 @@ def generationGet(currentBrand,model) -> list:
             finalArr.append([Number, restNumber, Frame, Years])
     return(finalArr)
 #print(generationGet('Toyota','Camry'))
-print(getCar('https://auto.ru/cars/used/sale/kia/ceed/1115005703-4fb70fb7/'))
+#print(getCar('https://auto.ru/cars/used/sale/kia/ceed/1115005703-4fb70fb7/'))
+#print(modelsGet("BMW",parser))
 parser.quit()
