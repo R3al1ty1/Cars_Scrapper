@@ -8,9 +8,10 @@ from selenium.webdriver.firefox.options import Options
 from transliterate import translit, get_available_language_codes
 from fake_headers import Headers
 from dateutil.parser import parse
+import time
 
-geckodriverLocation = r"/Users/user/Documents/geckodriver" # Location of geckodriver
-firefoxProfile = r"/Users/user/Library/Application Support/Firefox/Profiles/459ixwje.default" # Selected Firefox profile
+geckodriverLocation = r"/Users/Nasa/Documents/geckodriver" # Location of geckodriver
+firefoxProfile = r"/Users/Nasa/Library/Application Support/Firefox/Profiles/459ixwje.default" # Selected Firefox profile
 
 service = Service(geckodriverLocation) # Setting up location
 
@@ -19,12 +20,24 @@ options.headless = True
 options.set_preference('profile', firefoxProfile) # Setting up profile
 parser = webdriver.Firefox(service=service, options=options)  # Creating webdriver
 
+def yandexCaptchaPass(parser):
+    try:
+        button = parser.find_element(by=By.CLASS_NAME, value="CheckboxCaptcha-Button")
+        button.click()
+        time.sleep(3)
+    except:
+        return
+
 def getCar(url):
     #headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36'}
-    headers = Headers().generate()
-    response = requests.get(url, headers=headers)
-    response.encoding = response.apparent_encoding
-    soup = BeautifulSoup(response.text, 'lxml')
+    # headers = Headers().generate()
+    # print(headers)
+    # response = requests.get(url, headers=headers)
+    # response.encoding = response.apparent_encoding
+    # print(response.content)
+    parser.get(url)
+    yandexCaptchaPass(parser)
+    soup = BeautifulSoup(parser.page_source, 'lxml')
     #fieldOfSearch = soup.find_all('tr', class_='css-11ylakv ezjvm5n0') #specific row where data is stored (engine, engine volume, mileage etc.)
     foundCarFeatures = {}
     def findName():
@@ -34,10 +47,19 @@ def getCar(url):
         # nameOfCar = carName[0].replace('Продажа', '')
         return carName
     def findDateOfPublishment():
-        dateClass = soup.find('div', class_ = 'CardHead__infoItem CardHead__creationDate')
+        months = {"января":"january","февраля":"february",
+                  "марта":"march", "апреля": "april",
+                  "мая": "may","июня":"june",
+                  "июля":"july", "августа":"august",
+                  "сентября": "september", "октября":"october",
+                  "ноября":"november", "декабря":"december"}
+        dateClass = soup.find('div', class_ = 'CardHead__infoItem CardHead__creationDate').text
         #publishDate = dateClass[0].find_all('div', class_ = 'css-pxeubi evnwjo70')[0].text
-        convertedDate = parse(dateClass.text)
-        print(convertedDate)
+        dateClass = dateClass.split()
+        dateClass[1] = months[dateClass[1]]
+        dateClass = "".join(dateClass)
+        convertedDate = parse(dateClass)
+        convertedDate = f"{convertedDate.day}.{convertedDate.month}.{convertedDate.year}"
         return convertedDate
     def findYear():
         yearOfProduction = soup.find('li', class_='CardInfoRow CardInfoRow_year').find("a")
@@ -51,18 +73,18 @@ def getCar(url):
         # textForamtOfMileage = mileage[0].text
         # textForamtOfMileage = textForamtOfMileage.replace('\xa0', '').strip()
         # textForamtOfMileage = int(textForamtOfMileage)
-        return mileage.text[:-3]
+        return mileage.text[:-3].replace(u"\xa0", "")
     def findEngineParams():
-        engineParams = soup.find('li', class_ = 'CardInfoRow CardInfoRow_engine').find_all("span")[1].split("/")
+        engineParams = soup.find('li', class_ = 'CardInfoRow CardInfoRow_engine').find_all("span")[1].text.split("/")
         engineParams = [i.strip() for i in engineParams]
         engineParams[0] = engineParams[0][:-2]
         engineParams[1] = engineParams[1][:-5]
-        engineParams = set(engineParams)
-        # engineSpecs = engineFieldOfSearch[0].find_all('span')[0].text
-        # engineSpecs = engineSpecs.split(',')
-        # fuelType = engineSpecs[0]
-        # engineVolume = engineSpecs[1]
-        # engineVolume = engineVolume.replace('л', '')
+        outputParams = []
+        volume = [i for i in engineParams if "." in i][0]
+        engineParams.pop(engineParams.index(volume))
+        hp = [i for i in engineParams if i.isdigit()][0]
+        engineParams.pop(engineParams.index(hp))
+        engineParams = [volume, hp] + engineParams
         return engineParams
     # def findPower(fieldOfSearch):
     #     powerFieldOfSearch = fieldOfSearch.find_all('td', class_ = 'css-7whdrf ezjvm5n1')
@@ -76,10 +98,11 @@ def getCar(url):
         carWheelDrive = soup.find('li', class_ = 'CardInfoRow CardInfoRow_drive').find_all("span")
         return carWheelDrive[1].text.strip()
     def findColor():
-        carColor = soup.find_all('li', class_ = 'CardInfoRow CardInfoRow_color').find("a")
+        carColor = soup.find('li', class_ = 'CardInfoRow CardInfoRow_color').find("a")
         return carColor.text.strip()
     def computeTax(hp):
         out = 0
+        hp = int(hp)
         if hp <= 100:
             out = hp * 12
         elif 100 < hp <= 125:
@@ -293,5 +316,5 @@ def generationGet(currentBrand,model) -> list:
             finalArr.append([Number, restNumber, Frame, Years])
     return(finalArr)
 #print(generationGet('Toyota','Camry'))
-print(getCar('https://auto.ru/cars/used/sale/kia/ceed/1106577920-df03301d/'))
+print(getCar('https://auto.ru/cars/used/sale/kia/ceed/1115005703-4fb70fb7/'))
 parser.quit()
