@@ -62,13 +62,41 @@ def getCar(url):
         textFormatOfPower = textFormatOfPower.replace('налог', '')
         textFormatOfPower = textFormatOfPower.replace(',', '')
         textFormatOfPower = textFormatOfPower.replace('\xa0', ' ')
-        return(textFormatOfPower.strip())
+        return(int(textFormatOfPower[:-5]))
     def findWD(fieldOfSearch):
         carWheelDrive = fieldOfSearch.find_all('td', class_ = 'css-7whdrf ezjvm5n1')
         return(carWheelDrive[0].text.strip())
     def findColor(fieldOfSearch):
         carColor = fieldOfSearch.find_all('td', class_ = 'css-7whdrf ezjvm5n1')
         return(carColor[0].text.strip())
+    def computeTax(hp):
+        out = 0
+        if hp <= 100:
+            out = hp * 12
+        elif 100 < hp <= 125:
+            out = hp * 25
+        elif 125 < hp <= 150:
+            out = hp * 35
+        elif 150 < hp <= 175:
+            out = hp * 45
+        elif 175 < hp <= 200:
+            out = hp * 50
+        elif 200 < hp <= 225:
+            out = hp * 65
+        elif 225 < hp <= 250:
+            out = hp * 75
+        else:
+            out = hp * 150
+        return out
+    def steeringWheelSide(fieldOfSearch):
+        sideOfSW = fieldOfSearch.find_all('td', class_ = 'css-7whdrf ezjvm5n1')
+        textFormatOfSide = sideOfSW[0].text
+        isLeftSided = 0
+        if textFormatOfSide == "левый":
+            isLeftSided = True
+        else:
+            isLeftSided = False
+        return(isLeftSided)
     # def findEquipment(fieldOfSearch):
     #     arrOfEquipment = []
     #     carEquipmentClass = fieldOfSearch.find_all('a', class_ = 'css-1n9bvfr e1oy5ngb0')
@@ -91,13 +119,17 @@ def getCar(url):
             foundCarFeatures['Топливо'] = findVolume(gatheredCarFeature)[0]
             foundCarFeatures['Объем'] = findVolume(gatheredCarFeature)[1]
         if textOfRequestedCarFeature == "Мощность":
-            foundCarFeatures['Мощность'] = findPower(gatheredCarFeature)
+            hp = findPower(gatheredCarFeature)
+            foundCarFeatures['Мощность, л.с.'] = hp
+            foundCarFeatures['Налог'] = computeTax(hp)
         if textOfRequestedCarFeature == "Пробег, км":
             foundCarFeatures['Пробег, км'] = findMileage(gatheredCarFeature)
         if textOfRequestedCarFeature == "Привод":
             foundCarFeatures['Привод'] = findWD(gatheredCarFeature)
         if textOfRequestedCarFeature == "Цвет":
             foundCarFeatures['Цвет'] = findColor(gatheredCarFeature)
+        if textOfRequestedCarFeature == "Руль":
+            foundCarFeatures['Левый руль?'] = steeringWheelSide(gatheredCarFeature)
     return foundCarFeatures
 
 def scrollElement(selectedElement, times:int):
