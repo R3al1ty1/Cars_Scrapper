@@ -15,6 +15,7 @@
 * auto.ru
 * drom.ru
 * avito.ru
+* mobile.de
 
 ---
 
@@ -54,6 +55,9 @@
 
 ## **IMPORTANT**
 ### Advertisment index - sum of all points of advertisment analysis, defines betterness and priority of selected ad
+
+## Import costs calculation
+### If selected car should be imported from the foreign country, script should sum car price with import fees and estimated delivery cost
 
 ## Neural Networks
 
