@@ -97,6 +97,18 @@ def getCar(url):
         else:
             isLeftSided = False
         return(isLeftSided)
+    def reportAnalyzer(fieldOfSearch):
+        reportParams = fieldOfSearch.find_all('a', class_ = 'css-17f5zdi e1wvjnck0')
+        carPassportChecker = 0
+        if reportParams[5].text[1] == ' ':
+            registrationsNumber = int(reportParams[5].text[0])
+        else:
+            registrationsNumber = int(reportParams[5].text[:2])
+        if reportParams[4].text == "Характеристики  совпадают с ПТС":
+            carPassportChecker = True
+        else:
+            False
+        return(registrationsNumber, carPassportChecker)
     # def findEquipment(fieldOfSearch):
     #     arrOfEquipment = []
     #     carEquipmentClass = fieldOfSearch.find_all('a', class_ = 'css-1n9bvfr e1oy5ngb0')
@@ -112,6 +124,8 @@ def getCar(url):
     foundCarFeatures['Имя'] = findName()
     foundCarFeatures['Год'] = findYear()
     foundCarFeatures['Дата публикации'] = findDateOfPublishment()
+    foundCarFeatures['Совпадение с ПТС'] = reportAnalyzer(soup)[1]
+    foundCarFeatures['Кол-во регистраций'] = reportAnalyzer(soup)[0]
     for gatheredCarFeature in fieldOfSearch:
         requestedCarFeature = gatheredCarFeature.find_all('th', class_='css-1y4xbwk ezjvm5n2')
         textOfRequestedCarFeature = requestedCarFeature[0].text
@@ -283,5 +297,5 @@ def generationGet(currentBrand,model) -> list:
             finalArr.append([Number, restNumber, Frame, Years])
     return(finalArr)
 #print(generationGet('Toyota','Camry'))
-print(getCar('https://moscow.drom.ru/toyota/camry/46333584.html'))
+print(getCar('https://novosibirsk.drom.ru/bmw/3-series/46395435.html'))
 parser.quit()
