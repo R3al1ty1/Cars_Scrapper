@@ -30,6 +30,10 @@ def getCar(url):
         carName = carName.split(',')
         nameOfCar = carName[0].replace('Продажа', '')
         return(nameOfCar.strip())
+    def findDateOfPublishment():
+        dateClass = soup.find_all('div', class_ = 'css-yt5agb e1xuf3p90')
+        publishDate = dateClass[0].find_all('div', class_ = 'css-pxeubi evnwjo70')[0].text
+        return(publishDate[len(publishDate)-10:])
     def findYear():
         titleName = soup.find_all('h1', class_='css-1tplio9 e18vbajn0')
         carName = titleName[0].find_all('span')[0].text
@@ -79,6 +83,7 @@ def getCar(url):
 
     foundCarFeatures['Имя'] = findName()
     foundCarFeatures['Год'] = findYear()
+    foundCarFeatures['Дата публикации'] = findDateOfPublishment()
     for gatheredCarFeature in fieldOfSearch:
         requestedCarFeature = gatheredCarFeature.find_all('th', class_='css-1y4xbwk ezjvm5n2')
         textOfRequestedCarFeature = requestedCarFeature[0].text
