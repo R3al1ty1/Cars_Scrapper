@@ -1,4 +1,5 @@
 import requests
+import psycopg2
 from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -298,4 +299,40 @@ def generationGet(currentBrand,model) -> list:
     return(finalArr)
 #print(generationGet('Toyota','Camry'))
 print(getCar('https://novosibirsk.drom.ru/bmw/3-series/46395435.html'))
+currentDict = getСar('https://novosibirsk.drom.ru/bmw/3-series/46395435.html')
+# print(currentDict['Имя'])
 parser.quit()
+
+# class connectionDB:
+#     def __init__(self):
+#         self.connection = psycopg2.connect(
+#             host = "194.87.102.109",
+#             database = "CarsDB",
+#             user = "postgres",
+#             password = "CarsScrapper123!",
+#         )
+#     def getCursor(self):
+#         return self.connection.cursor()
+#     def insert(self,id,url):
+#         curs = self.getCursor()
+#         curs.execute(f"INSERT INTO main.ads (id,url) VALUES ({id},'{url}')")
+#         self.connection.commit()
+#
+# connection = psycopg2.connect(
+#             host = "194.87.102.109",
+#             database = "CarsDB",
+#             user = "postgres",
+#             password = "CarsScrapper123!",
+#         )
+#
+# con = connectionDB()
+# initialURL = 'https://moscow.drom.ru/lexus/rx300/46371552.html'
+# for i in range(46371552,50000001):
+#     currentURL = f'https://moscow.drom.ru/lexus/rx300/{i}.html'
+#     response = requests.get(currentURL, headers=headers)
+#     response.encoding = response.apparent_encoding
+#     soup = BeautifulSoup(response.text, 'lxml')
+#     currentDict = getcar(currentURL)
+#     con.insert(currentDict[''], currentDict[''] currentDict[''] currentDict[''] currentDict[''] currentDict[''] currentDict[''] currentDict[''] currentDict[''] currentDict[''] currentDict[''] currentDict[''] currentDict[''])
+# dict = {"Fuck": 'Dick'}
+# print(dict['Fuck'])
