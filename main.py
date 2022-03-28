@@ -299,6 +299,7 @@ def generationGet(currentBrand,model) -> list:
     return(finalArr)
 #print(generationGet('Toyota','Camry'))
 print(getCar('https://novosibirsk.drom.ru/bmw/3-series/46395435.html'))
+currentDict = getCar("blablabla")
 currentDict = getСar('https://novosibirsk.drom.ru/bmw/3-series/46395435.html')
 # print(currentDict['Имя'])
 parser.quit()
