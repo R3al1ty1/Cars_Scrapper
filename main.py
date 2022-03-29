@@ -1,5 +1,6 @@
 import requests
 import psycopg2
+from fake_headers import Headers
 from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -327,11 +328,13 @@ connection = psycopg2.connect(
 
 con = connectionDB()
 initialURL = 'https://moscow.drom.ru/toyota/camry/46333584.html'
+headerGen = Headers()
 for i in range(46333584,46333588):
     strNum = str(i)
     currentURL = f'https://moscow.drom.ru/toyota/camry/{strNum}.html'
-    headers = {
-        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36'}
+    headers = headerGen.generate()
+    #headers = {
+    #    'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36'}
     response = requests.get(currentURL, headers=headers)
     response.encoding = response.apparent_encoding
     soup = BeautifulSoup(response.text, 'lxml')
