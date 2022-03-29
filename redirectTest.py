@@ -1,5 +1,6 @@
 import requests
 
 
-r = requests.get('https://shchuchye.drom.ru/nissan/bluebird/45537945.html', allow_redirects=False)
-print(r.headers['Location'])
+r = requests.get('https://novosibirsk.drom.ru/toyota/camry/10000003.html', allow_redirects=False)
+# print(r.headers['Location'])
+print(r.status_code)
