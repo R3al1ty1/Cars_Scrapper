@@ -3,7 +3,7 @@
 ## Main task - find the best solution for the user (look up for the best car by user request)
 
 ### Tasks:
-1.  Get all avalable cars from query
+1. Get all available cars from query
 2. Save all cars to the database
 3. Find the best one
 4. Use ML for that
@@ -71,7 +71,7 @@
 
 ## Graphical interface
 
-### Required simple and pretty user interface, which includes queue input and result outout. Interface should be simple and intuitive
+### Required simple and pretty user interface, which includes queue input and result output. Interface should be simple and intuitive
 
 ## Notifications
 

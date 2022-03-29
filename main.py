@@ -1,6 +1,5 @@
 import requests
 import psycopg2
-from fake_headers import Headers
 from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -26,6 +25,9 @@ def getCar(url):
     soup = BeautifulSoup(response.text, 'lxml')
     fieldOfSearch = soup.find_all('tr', class_='css-11ylakv ezjvm5n0') #specific row where data is stored (engine, engine volume, mileage etc.)
     foundCarFeatures = {}
+    uselessAd = soup.find_all('span', class_='css-1sk0lam e2rnzmt0')
+    if uselessAd[1].text == "Спецтехника и грузовики: объявления о продаже и покупке":
+        return "Спецтехника"
     def findName():
         titleName = soup.find_all('h1', class_='css-1tplio9 e18vbajn0')
         carName = titleName[0].find_all('span')[0].text
@@ -105,15 +107,22 @@ def getCar(url):
     def reportAnalyzer(fieldOfSearch):
         reportParams = fieldOfSearch.find_all('a', class_ = 'css-17f5zdi e1wvjnck0')
         carPassportChecker = 0
-        if reportParams[5].text[1] == ' ':
-            registrationsNumber = int(reportParams[5].text[0])
+        if len(reportParams) > 5:
+            if reportParams[5].text[1] == ' ':
+                registrationsNumber = int(reportParams[5].text[0])
+                if reportParams[4].text == "Характеристики  совпадают с ПТС":
+                    carPassportChecker = True
+                else:
+                    carPassportChecker = False
+            else:
+                registrationsNumber = int(reportParams[6].text[0])
+                if reportParams[5].text == "Характеристики  совпадают с ПТС":
+                    carPassportChecker = True
+                else:
+                    carPassportChecker = False
+            return(registrationsNumber, carPassportChecker)
         else:
-            registrationsNumber = int(reportParams[5].text[:2])
-        if reportParams[4].text == "Характеристики  совпадают с ПТС":
-            carPassportChecker = True
-        else:
-            False
-        return(registrationsNumber, carPassportChecker)
+            return(0, False)
     # def findEquipment(fieldOfSearch):
     #     arrOfEquipment = []
     #     carEquipmentClass = fieldOfSearch.find_all('a', class_ = 'css-1n9bvfr e1oy5ngb0')
@@ -129,8 +138,8 @@ def getCar(url):
     foundCarFeatures['Имя'] = findName()
     foundCarFeatures['Год'] = findYear()
     foundCarFeatures['Дата публикации'] = findDateOfPublishment()
-    #foundCarFeatures['Совпадение с ПТС'] = reportAnalyzer(soup)[1]
-    #foundCarFeatures['Кол-во регистраций'] = reportAnalyzer(soup)[0]
+    foundCarFeatures['Совпадение с ПТС'] = reportAnalyzer(soup)[1]
+    foundCarFeatures['Кол-во регистраций'] = reportAnalyzer(soup)[0]
     for gatheredCarFeature in fieldOfSearch:
         requestedCarFeature = gatheredCarFeature.find_all('th', class_='css-1y4xbwk ezjvm5n2')
         textOfRequestedCarFeature = requestedCarFeature[0].text
@@ -302,8 +311,11 @@ def generationGet(currentBrand,model) -> list:
             finalArr.append([Number, restNumber, Frame, Years])
     return(finalArr)
 #print(generationGet('Toyota','Camry'))
-#print(getCar('https://moscow.drom.ru/toyota/camry/46333586.html'))
-
+#print(getCar('https://sayansk.drom.ru/spec/grunwald/grunwald/semitrailer/s-tipper/46333595.html'))
+# if getCar('https://sayansk.drom.ru/spec/grunwald/grunwald/semitrailer/s-tipper/46333595.html') == 'Спецтехника':
+#     print('bruh')
+# else:
+#     print('getCar()')
 class connectionDB:
     def __init__(self):
         self.connection = psycopg2.connect(
@@ -314,9 +326,9 @@ class connectionDB:
         )
     def getCursor(self):
         return self.connection.cursor()
-    def insertData(self,name,year,dateOfPublish,fuelType,engineVolume,enginePower,tax,wheelDrive,color,mileage,leftSidedSW,url):
+    def insertData(self,name,year,dateOfPublish,concidence,registrationsnumber,fuelType,engineVolume,enginePower,tax,wheelDrive,color,mileage,leftSidedSW,url):
         curs = self.getCursor()
-        curs.execute(f"INSERT INTO main.ads (name,year,dateOfPublish,fuelType,engineVolume,enginePower,tax,wheelDrive,color,mileage,leftSidedSW,url) VALUES ('{name}',{year},'{dateOfPublish}','{fuelType}','{engineVolume}',{enginePower},{tax},'{wheelDrive}','{color}',{mileage},{leftSidedSW},'{url}')")
+        curs.execute(f"INSERT INTO main.ads (name,year,dateOfPublish,concidence,registrationsnumber,fuelType,engineVolume,enginePower,tax,wheelDrive,color,mileage,leftSidedSW,url) VALUES ('{name}',{year},'{dateOfPublish}',{concidence},{registrationsnumber},'{fuelType}','{engineVolume}',{enginePower},{tax},'{wheelDrive}','{color}',{mileage},{leftSidedSW},'{url}')")
         self.connection.commit()
 
 connection = psycopg2.connect(
@@ -327,17 +339,18 @@ connection = psycopg2.connect(
         )
 
 con = connectionDB()
-initialURL = 'https://moscow.drom.ru/toyota/camry/46333584.html'
-headerGen = Headers()
-for i in range(46333584,46333588):
+initialURL = 'https://klin.drom.ru/renault/sandero_stepway/46333589.html'
+for i in range(46333589,46333789):
     strNum = str(i)
-    currentURL = f'https://moscow.drom.ru/toyota/camry/{strNum}.html'
-    headers = headerGen.generate()
-    #headers = {
-    #    'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36'}
+    currentURL = f'https://klin.drom.ru/renault/sandero_stepway/{strNum}.html'
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36'}
     response = requests.get(currentURL, headers=headers)
     response.encoding = response.apparent_encoding
     soup = BeautifulSoup(response.text, 'lxml')
-    currentDict = getCar(currentURL)
-    con.insertData(currentDict['Имя'], currentDict['Год'], currentDict['Дата публикации'], currentDict['Топливо'], currentDict['Объем'], currentDict['Мощность, л.с.'], currentDict['Налог'], currentDict['Привод'], currentDict['Цвет'], currentDict['Пробег, км'], currentDict['Левый руль?'], currentURL)
+    if getCar(currentURL) != 'Спецтехника':
+        currentDict = getCar(currentURL)
+        con.insertData(currentDict['Имя'], currentDict['Год'], currentDict['Дата публикации'], currentDict['Совпадение с ПТС'], currentDict['Кол-во регистраций'], currentDict['Топливо'], currentDict['Объем'], currentDict['Мощность, л.с.'], currentDict['Налог'], currentDict['Привод'], currentDict['Цвет'], currentDict['Пробег, км'], currentDict['Левый руль?'], currentURL)
+    else:
+        print('bruh', currentURL)
 parser.quit()
