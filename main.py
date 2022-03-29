@@ -128,8 +128,8 @@ def getCar(url):
     foundCarFeatures['Имя'] = findName()
     foundCarFeatures['Год'] = findYear()
     foundCarFeatures['Дата публикации'] = findDateOfPublishment()
-    foundCarFeatures['Совпадение с ПТС'] = reportAnalyzer(soup)[1]
-    foundCarFeatures['Кол-во регистраций'] = reportAnalyzer(soup)[0]
+    #foundCarFeatures['Совпадение с ПТС'] = reportAnalyzer(soup)[1]
+    #foundCarFeatures['Кол-во регистраций'] = reportAnalyzer(soup)[0]
     for gatheredCarFeature in fieldOfSearch:
         requestedCarFeature = gatheredCarFeature.find_all('th', class_='css-1y4xbwk ezjvm5n2')
         textOfRequestedCarFeature = requestedCarFeature[0].text
@@ -301,7 +301,7 @@ def generationGet(currentBrand,model) -> list:
             finalArr.append([Number, restNumber, Frame, Years])
     return(finalArr)
 #print(generationGet('Toyota','Camry'))
-#print(getCar('https://moscow.drom.ru/toyota/camry/46333584.html'))
+#print(getCar('https://moscow.drom.ru/toyota/camry/46333586.html'))
 
 class connectionDB:
     def __init__(self):
@@ -313,9 +313,9 @@ class connectionDB:
         )
     def getCursor(self):
         return self.connection.cursor()
-    def insertData(self,name,year,dateOfPublish,concidence,registrationsNumber,fuelType,engineVolume,enginePower,tax,wheelDrive,color,mileage,leftSidedSW,url):
+    def insertData(self,name,year,dateOfPublish,fuelType,engineVolume,enginePower,tax,wheelDrive,color,mileage,leftSidedSW,url):
         curs = self.getCursor()
-        curs.execute(f"INSERT INTO main.ads (name,year,dateOfPublish,concidence,registrationsNumber,fuelType,engineVolume,enginePower,tax,wheelDrive,color,mileage,leftSidedSW,url) VALUES ('{name}',{year},'{dateOfPublish}',{concidence},{registrationsNumber},'{fuelType}','{engineVolume}',{enginePower},{tax},'{wheelDrive}','{color}',{mileage},{leftSidedSW},'{url}')")
+        curs.execute(f"INSERT INTO main.ads (name,year,dateOfPublish,fuelType,engineVolume,enginePower,tax,wheelDrive,color,mileage,leftSidedSW,url) VALUES ('{name}',{year},'{dateOfPublish}','{fuelType}','{engineVolume}',{enginePower},{tax},'{wheelDrive}','{color}',{mileage},{leftSidedSW},'{url}')")
         self.connection.commit()
 
 connection = psycopg2.connect(
@@ -327,7 +327,7 @@ connection = psycopg2.connect(
 
 con = connectionDB()
 initialURL = 'https://moscow.drom.ru/toyota/camry/46333584.html'
-for i in range(46333584,46333586):
+for i in range(46333584,46333588):
     strNum = str(i)
     currentURL = f'https://moscow.drom.ru/toyota/camry/{strNum}.html'
     headers = {
@@ -336,5 +336,5 @@ for i in range(46333584,46333586):
     response.encoding = response.apparent_encoding
     soup = BeautifulSoup(response.text, 'lxml')
     currentDict = getCar(currentURL)
-    con.insertData(currentDict['Имя'], currentDict['Год'], currentDict['Дата публикации'], currentDict['Совпадение с ПТС'], currentDict['Кол-во регистраций'], currentDict['Топливо'], currentDict['Объем'], currentDict['Мощность, л.с.'], currentDict['Налог'], currentDict['Привод'], currentDict['Цвет'], currentDict['Пробег, км'], currentDict['Левый руль?'], currentURL)
+    con.insertData(currentDict['Имя'], currentDict['Год'], currentDict['Дата публикации'], currentDict['Топливо'], currentDict['Объем'], currentDict['Мощность, л.с.'], currentDict['Налог'], currentDict['Привод'], currentDict['Цвет'], currentDict['Пробег, км'], currentDict['Левый руль?'], currentURL)
 parser.quit()
