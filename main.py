@@ -30,6 +30,9 @@ def getCar(url):
         carName = titleName[0].find_all('span')[0].text
         carName = carName.split(',')
         nameOfCar = carName[0].replace('Продажа', '')
+        # nameOfCar = nameOfCar.replace(' ', '_')
+        # if nameOfCar[0] == '_':
+        #     nameOfCar = nameOfCar[1:]
         return(nameOfCar.strip())
     def findDateOfPublishment():
         dateClass = soup.find_all('div', class_ = 'css-yt5agb e1xuf3p90')
@@ -298,41 +301,40 @@ def generationGet(currentBrand,model) -> list:
             finalArr.append([Number, restNumber, Frame, Years])
     return(finalArr)
 #print(generationGet('Toyota','Camry'))
-print(getCar('https://novosibirsk.drom.ru/bmw/3-series/46395435.html'))
-currentDict = getСar('https://novosibirsk.drom.ru/bmw/3-series/46395435.html')
-# print(currentDict['Имя'])
-parser.quit()
+#print(getCar('https://moscow.drom.ru/toyota/camry/46333584.html'))
 
-# class connectionDB:
-#     def __init__(self):
-#         self.connection = psycopg2.connect(
-#             host = "194.87.102.109",
-#             database = "CarsDB",
-#             user = "postgres",
-#             password = "CarsScrapper123!",
-#         )
-#     def getCursor(self):
-#         return self.connection.cursor()
-#     def insert(self,id,url):
-#         curs = self.getCursor()
-#         curs.execute(f"INSERT INTO main.ads (id,url) VALUES ({id},'{url}')")
-#         self.connection.commit()
-#
-# connection = psycopg2.connect(
-#             host = "194.87.102.109",
-#             database = "CarsDB",
-#             user = "postgres",
-#             password = "CarsScrapper123!",
-#         )
-#
-# con = connectionDB()
-# initialURL = 'https://moscow.drom.ru/lexus/rx300/46371552.html'
-# for i in range(46371552,50000001):
-#     currentURL = f'https://moscow.drom.ru/lexus/rx300/{i}.html'
-#     response = requests.get(currentURL, headers=headers)
-#     response.encoding = response.apparent_encoding
-#     soup = BeautifulSoup(response.text, 'lxml')
-#     currentDict = getcar(currentURL)
-#     con.insert(currentDict[''], currentDict[''] currentDict[''] currentDict[''] currentDict[''] currentDict[''] currentDict[''] currentDict[''] currentDict[''] currentDict[''] currentDict[''] currentDict[''] currentDict[''])
-# dict = {"Fuck": 'Dick'}
-# print(dict['Fuck'])
+class connectionDB:
+    def __init__(self):
+        self.connection = psycopg2.connect(
+            host = "194.87.102.109",
+            database = "CarsDB",
+            user = "postgres",
+            password = "CarsScrapper123!",
+        )
+    def getCursor(self):
+        return self.connection.cursor()
+    def insertData(self,name,year,dateOfPublish,concidence,registrationsNumber,fuelType,engineVolume,enginePower,tax,wheelDrive,color,mileage,leftSidedSW,url):
+        curs = self.getCursor()
+        curs.execute(f"INSERT INTO main.ads (name,year,dateOfPublish,concidence,registrationsNumber,fuelType,engineVolume,enginePower,tax,wheelDrive,color,mileage,leftSidedSW,url) VALUES ('{name}',{year},'{dateOfPublish}',{concidence},{registrationsNumber},'{fuelType}','{engineVolume}',{enginePower},{tax},'{wheelDrive}','{color}',{mileage},{leftSidedSW},'{url}')")
+        self.connection.commit()
+
+connection = psycopg2.connect(
+            host = "194.87.102.109",
+            database = "CarsDB",
+            user = "postgres",
+            password = "CarsScrapper123!",
+        )
+
+con = connectionDB()
+initialURL = 'https://moscow.drom.ru/toyota/camry/46333584.html'
+for i in range(46333584,46333586):
+    strNum = str(i)
+    currentURL = f'https://moscow.drom.ru/toyota/camry/{strNum}.html'
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36'}
+    response = requests.get(currentURL, headers=headers)
+    response.encoding = response.apparent_encoding
+    soup = BeautifulSoup(response.text, 'lxml')
+    currentDict = getCar(currentURL)
+    con.insertData(currentDict['Имя'], currentDict['Год'], currentDict['Дата публикации'], currentDict['Совпадение с ПТС'], currentDict['Кол-во регистраций'], currentDict['Топливо'], currentDict['Объем'], currentDict['Мощность, л.с.'], currentDict['Налог'], currentDict['Привод'], currentDict['Цвет'], currentDict['Пробег, км'], currentDict['Левый руль?'], currentURL)
+parser.quit()
