@@ -1,5 +1,4 @@
-import psycopg2
-from peewee import Model, ModelBase
+c
 
 class connectionDB:
     def __init__(self):
@@ -22,11 +21,6 @@ connection = psycopg2.connect(
             user = "postgres",
             password = "CarsScrapper123!",
         )
-# class BaseModel(Model):
-#     class Meta:
-#         database = connection
-#
-# class main.ads(ModelBase):
-#
-# con = connectionDB()
-# con.insert(1,"\'Yarik\'")
+
+con = connectionDB()
+con.insert(1,"Yarik")
