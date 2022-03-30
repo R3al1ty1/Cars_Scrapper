@@ -8,6 +8,7 @@ from selenium.webdriver.firefox.service import Service
 from selenium.webdriver.firefox.options import Options
 from transliterate import translit, get_available_language_codes
 from fake_headers import Headers
+from loguru import logger
 
 geckodriverLocation = r"/Users/user/Documents/geckodriver" # Location of geckodriver
 firefoxProfile = r"/Users/user/Library/Application Support/Firefox/Profiles/459ixwje.default" # Selected Firefox profile
@@ -28,7 +29,6 @@ def getCar(url):
     fieldOfSearch = soup.find_all('tr', class_='css-11ylakv ezjvm5n0') #specific row where data is stored (engine, engine volume, mileage etc.)
     foundCarFeatures = {}
     uselessAd = soup.find_all('span', class_='css-1sk0lam e2rnzmt0')
-    print(uselessAd[1].text)
     if uselessAd[1].text == "Спецтехника и грузовики: объявления о продаже и покупке":
         return "Спецтехника"
     def findName():
@@ -352,9 +352,10 @@ for i in range(46333589,46333789):
     # response.encoding = response.apparent_encoding
     # soup = BeautifulSoup(response.text, 'lxml')
     if (currentDict := getCar(currentURL)) != 'Спецтехника':
+        logger.info(f"Обработана ссылка с ID {strNum}")
         con.insertData(currentDict['Имя'], currentDict['Год'], currentDict['Дата публикации'], currentDict['Совпадение с ПТС'], currentDict['Кол-во регистраций'], currentDict['Топливо'], currentDict['Объем'], currentDict['Мощность, л.с.'], currentDict['Налог'], currentDict['Привод'], currentDict['Цвет'], currentDict['Пробег, км'], currentDict['Левый руль?'], currentURL)
     else:
-        print('bruh', currentURL)
+        logger.info(f"Найдена спецтехника по ID {strNum}")
 
 # currentURL = f'https://klin.drom.ru/renault/sandero_stepway/46333599.html'
 # headers = {
