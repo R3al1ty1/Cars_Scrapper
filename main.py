@@ -341,29 +341,28 @@ connection = psycopg2.connect(
 
 con = connectionDB()
 initialURL = 'https://klin.drom.ru/renault/sandero_stepway/46333589.html'
-# for i in range(46333589,46333789):
-#     strNum = str(i)
-#     currentURL = f'https://klin.drom.ru/renault/sandero_stepway/{strNum}.html'
-#     headers = {
-#         'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36'}
-#     response = requests.get(currentURL, headers=headers)
-#     response.encoding = response.apparent_encoding
-#     soup = BeautifulSoup(response.text, 'lxml')
-#     if getCar(currentURL) != 'Спецтехника':
-#         currentDict = getCar(currentURL)
-#         con.insertData(currentDict['Имя'], currentDict['Год'], currentDict['Дата публикации'], currentDict['Совпадение с ПТС'], currentDict['Кол-во регистраций'], currentDict['Топливо'], currentDict['Объем'], currentDict['Мощность, л.с.'], currentDict['Налог'], currentDict['Привод'], currentDict['Цвет'], currentDict['Пробег, км'], currentDict['Левый руль?'], currentURL)
-#     else:
-#         print('bruh', currentURL)
+for i in range(46333589,46333789):
+    strNum = str(i)
+    currentURL = f'https://klin.drom.ru/renault/sandero_stepway/{strNum}.html'
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36'}
+    response = requests.get(currentURL, headers=headers)
+    response.encoding = response.apparent_encoding
+    soup = BeautifulSoup(response.text, 'lxml')
+    if (currentDict := getCar(currentURL)) != 'Спецтехника':
+        con.insertData(currentDict['Имя'], currentDict['Год'], currentDict['Дата публикации'], currentDict['Совпадение с ПТС'], currentDict['Кол-во регистраций'], currentDict['Топливо'], currentDict['Объем'], currentDict['Мощность, л.с.'], currentDict['Налог'], currentDict['Привод'], currentDict['Цвет'], currentDict['Пробег, км'], currentDict['Левый руль?'], currentURL)
+    else:
+        print('bruh', currentURL)
 
-currentURL = f'https://klin.drom.ru/renault/sandero_stepway/46333599.html'
-headers = {
-    'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36'}
-response = requests.get(currentURL, headers=headers)
-response.encoding = response.apparent_encoding
-soup = BeautifulSoup(response.text, 'lxml')
-if getCar(currentURL) != 'Спецтехника':
-    currentDict = getCar(currentURL)
-    con.insertData(currentDict['Имя'], currentDict['Год'], currentDict['Дата публикации'], currentDict['Совпадение с ПТС'], currentDict['Кол-во регистраций'], currentDict['Топливо'], currentDict['Объем'], currentDict['Мощность, л.с.'], currentDict['Налог'], currentDict['Привод'], currentDict['Цвет'], currentDict['Пробег, км'], currentDict['Левый руль?'], currentURL)
-else:
-    print('bruh', currentURL)
+# currentURL = f'https://klin.drom.ru/renault/sandero_stepway/46333599.html'
+# headers = {
+#     'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36'}
+# response = requests.get(currentURL, headers=headers)
+# response.encoding = response.apparent_encoding
+# soup = BeautifulSoup(response.text, 'lxml')
+# if getCar(currentURL) != 'Спецтехника':
+#     currentDict = getCar(currentURL)
+#     con.insertData(currentDict['Имя'], currentDict['Год'], currentDict['Дата публикации'], currentDict['Совпадение с ПТС'], currentDict['Кол-во регистраций'], currentDict['Топливо'], currentDict['Объем'], currentDict['Мощность, л.с.'], currentDict['Налог'], currentDict['Привод'], currentDict['Цвет'], currentDict['Пробег, км'], currentDict['Левый руль?'], currentURL)
+# else:
+#     print('bruh', currentURL)
 parser.quit()
