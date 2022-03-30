@@ -102,11 +102,9 @@ def getCar(url):
         return out
     def steeringWheelSide(fieldOfSearch):
         sideOfSW = fieldOfSearch.find_all('td', class_ = 'css-7whdrf ezjvm5n1')
+        isLeftSided = True
         textFormatOfSide = sideOfSW[0].text
-        isLeftSided = 0
-        if textFormatOfSide == "левый":
-            isLeftSided = True
-        else:
+        if textFormatOfSide == "правый":
             isLeftSided = False
         return(isLeftSided)
     def reportAnalyzer(fieldOfSearch):
@@ -353,6 +351,7 @@ for i in range(46333589,46333789):
     # response = requests.get(currentURL, headers=headers)
     # response.encoding = response.apparent_encoding
     # soup = BeautifulSoup(response.text, 'lxml')
+    currentDict = {'Имя' : '-','Год': 0,'Дата публикации': '-','Совпадение с ПТС': True,'Кол-во регистраций': 0,'Топливо': '-','Объем': '-','Мощность, л.с.': 0,'Налог': 0,'Привод': '-','Цвет': '-','Пробег, км': 0,'Левый руль?': True}
     if (currentDict := getCar(currentURL)) != "Do not operate with":
         logger.info(f"Processed ID {strNum}")
         con.insertData(currentDict['Имя'], currentDict['Год'], currentDict['Дата публикации'], currentDict['Совпадение с ПТС'], currentDict['Кол-во регистраций'], currentDict['Топливо'], currentDict['Объем'], currentDict['Мощность, л.с.'], currentDict['Налог'], currentDict['Привод'], currentDict['Цвет'], currentDict['Пробег, км'], currentDict['Левый руль?'], currentURL)
