@@ -7,6 +7,7 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.firefox.service import Service
 from selenium.webdriver.firefox.options import Options
 from transliterate import translit, get_available_language_codes
+from fake_headers import Headers
 
 geckodriverLocation = r"/Users/user/Documents/geckodriver" # Location of geckodriver
 firefoxProfile = r"/Users/user/Library/Application Support/Firefox/Profiles/459ixwje.default" # Selected Firefox profile
@@ -19,7 +20,8 @@ options.set_preference('profile', firefoxProfile) # Setting up profile
 parser = webdriver.Firefox(service=service, options=options)  # Creating webdriver
 
 def getCar(url):
-    headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36'}
+    #headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36'}
+    headers = Headers().generate()
     response = requests.get(url, headers=headers)
     response.encoding = response.apparent_encoding
     soup = BeautifulSoup(response.text, 'lxml')
@@ -344,11 +346,11 @@ initialURL = 'https://klin.drom.ru/renault/sandero_stepway/46333589.html'
 for i in range(46333589,46333789):
     strNum = str(i)
     currentURL = f'https://klin.drom.ru/renault/sandero_stepway/{strNum}.html'
-    headers = {
-        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36'}
-    response = requests.get(currentURL, headers=headers)
-    response.encoding = response.apparent_encoding
-    soup = BeautifulSoup(response.text, 'lxml')
+    # headers = {
+    #     'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36'}
+    # response = requests.get(currentURL, headers=headers)
+    # response.encoding = response.apparent_encoding
+    # soup = BeautifulSoup(response.text, 'lxml')
     if (currentDict := getCar(currentURL)) != 'Спецтехника':
         con.insertData(currentDict['Имя'], currentDict['Год'], currentDict['Дата публикации'], currentDict['Совпадение с ПТС'], currentDict['Кол-во регистраций'], currentDict['Топливо'], currentDict['Объем'], currentDict['Мощность, л.с.'], currentDict['Налог'], currentDict['Привод'], currentDict['Цвет'], currentDict['Пробег, км'], currentDict['Левый руль?'], currentURL)
     else:
