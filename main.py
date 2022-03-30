@@ -29,7 +29,7 @@ def getCar(url):
     response.encoding = response.apparent_encoding
     soup = BeautifulSoup(response.text, 'lxml')
     fieldOfSearch = soup.find_all('tr', class_='css-11ylakv ezjvm5n0') #specific row where data is stored (engine, engine volume, mileage etc.)
-    foundCarFeatures = {}
+    foundCarFeatures = {'Имя' : '-','Год': 0,'Дата публикации': '-','Совпадение с ПТС': True,'Кол-во регистраций': 0,'Топливо': '-','Объем': '-','Мощность, л.с.': 0,'Налог': 0,'Привод': '-','Цвет': '-','Пробег, км': 0,'Левый руль?': True}
     uselessAd = soup.find_all('span', class_='css-1sk0lam e2rnzmt0')
     if uselessAd[1].text == "Спецтехника и грузовики: объявления о продаже и покупке":
         return "Do not operate with"
@@ -110,6 +110,7 @@ def getCar(url):
     def reportAnalyzer(fieldOfSearch):
         reportParams = fieldOfSearch.find_all('a', class_ = 'css-17f5zdi e1wvjnck0')
         carPassportChecker = 0
+        listOfRegistrations = ['1','2','3','4','5','6','7','8','9']
         if len(reportParams) > 5:
             if reportParams[5].text[1] == ' ':
                 registrationsNumber = int(reportParams[5].text[0])
@@ -118,11 +119,12 @@ def getCar(url):
                 else:
                     carPassportChecker = False
             else:
-                registrationsNumber = int(reportParams[6].text[0])
-                if reportParams[5].text == "Характеристики  совпадают с ПТС":
-                    carPassportChecker = True
-                else:
-                    carPassportChecker = False
+                if reportParams[6].text[0] in listOfRegistrations:
+                    registrationsNumber = int(reportParams[6].text[0])
+                    if reportParams[5].text == "Характеристики  совпадают с ПТС":
+                        carPassportChecker = True
+                    else:
+                        carPassportChecker = False
             return(registrationsNumber, carPassportChecker)
         else:
             return(0, False)
@@ -137,7 +139,6 @@ def getCar(url):
     #     fuelConsumptionClass = soup.find_all('div', class_ = 'b-model-specs__icon b-ico b-ico_type_car-sedan')
     #     fuelConsumption = fuelConsumptionClass[0].find_all('div', class_ = 'b-model-specs__text').text
     #     return(fuelConsumptionClass)
-
     foundCarFeatures['Имя'] = findName()
     foundCarFeatures['Год'] = findYear()
     foundCarFeatures['Дата публикации'] = findDateOfPublishment()
@@ -314,11 +315,8 @@ def generationGet(currentBrand,model) -> list:
             finalArr.append([Number, restNumber, Frame, Years])
     return(finalArr)
 #print(generationGet('Toyota','Camry'))
-#print(getCar('https://sayansk.drom.ru/spec/grunwald/grunwald/semitrailer/s-tipper/46333595.html'))
-# if getCar('https://sayansk.drom.ru/spec/grunwald/grunwald/semitrailer/s-tipper/46333595.html') == 'Спецтехника':
-#     print('bruh')
-# else:
-#     print('getCar()')
+#print(getCar('https://vladivostok.drom.ru/honda/fit_shuttle/46333610.html'))
+
 class connectionDB:
     def __init__(self):
         self.connection = psycopg2.connect(
@@ -351,7 +349,6 @@ for i in range(46333589,46333789):
     # response = requests.get(currentURL, headers=headers)
     # response.encoding = response.apparent_encoding
     # soup = BeautifulSoup(response.text, 'lxml')
-    currentDict = {'Имя' : '-','Год': 0,'Дата публикации': '-','Совпадение с ПТС': True,'Кол-во регистраций': 0,'Топливо': '-','Объем': '-','Мощность, л.с.': 0,'Налог': 0,'Привод': '-','Цвет': '-','Пробег, км': 0,'Левый руль?': True}
     if (currentDict := getCar(currentURL)) != "Do not operate with":
         logger.info(f"Processed ID {strNum}")
         con.insertData(currentDict['Имя'], currentDict['Год'], currentDict['Дата публикации'], currentDict['Совпадение с ПТС'], currentDict['Кол-во регистраций'], currentDict['Топливо'], currentDict['Объем'], currentDict['Мощность, л.с.'], currentDict['Налог'], currentDict['Привод'], currentDict['Цвет'], currentDict['Пробег, км'], currentDict['Левый руль?'], currentURL)
