@@ -10,8 +10,8 @@ from transliterate import translit, get_available_language_codes
 from fake_headers import Headers
 from loguru import logger
 
-geckodriverLocation = r"/Users/user/Documents/geckodriver" # Location of geckodriver
-firefoxProfile = r"/Users/user/Library/Application Support/Firefox/Profiles/459ixwje.default" # Selected Firefox profile
+geckodriverLocation = r"/Users/Nasa/Documents/geckodriver" # Location of geckodriver
+firefoxProfile = r"/Users/Nasa/Library/Application Support/Firefox/Profiles/459ixwje.default" # Selected Firefox profile
 
 service = Service(geckodriverLocation) # Setting up location
 
@@ -24,7 +24,9 @@ def getCar(url):
     #headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36'}
     headers = Headers().generate()
     response = requests.get(url, headers=headers)
-    if response.status_code == 404:
+    if response.status_code != 200:
+        if response.status_code == 429:
+            logger.debug("Too many requests code 429")
         return "Do not operate with"
     response.encoding = response.apparent_encoding
     soup = BeautifulSoup(response.text, 'lxml')
@@ -57,7 +59,7 @@ def getCar(url):
         mileage = fieldOfSearch.find_all('td', class_ = 'css-7whdrf ezjvm5n1')
         textForamtOfMileage = mileage[0].text
         textForamtOfMileage = textForamtOfMileage.replace('\xa0', '').strip()
-        textForamtOfMileage = int(textForamtOfMileage)
+        textForamtOfMileage = int(textForamtOfMileage.split(",")[0])
         return(textForamtOfMileage)
     def findVolume(fieldOfSearch):
         engineFieldOfSearch = fieldOfSearch.find_all('td', class_ = 'css-7whdrf ezjvm5n1')
@@ -108,10 +110,12 @@ def getCar(url):
             isLeftSided = False
         return(isLeftSided)
     def reportAnalyzer(fieldOfSearch):
-        reportParams = fieldOfSearch.find_all('a', class_ = 'css-17f5zdi e1wvjnck0')
-        carPassportChecker = 0
-        listOfRegistrations = ['1','2','3','4','5','6','7','8','9']
-        if len(reportParams) > 5:
+        registrationsNumber = 0
+        carPassportChecker = False
+        try:
+            reportParams = fieldOfSearch.find_all('a', class_ = 'css-17f5zdi e1wvjnck0')
+            listOfRegistrations = ['1','2','3','4','5','6','7','8','9']
+        # if len(reportParams) > 5:
             if reportParams[5].text[1] == ' ':
                 registrationsNumber = int(reportParams[5].text[0])
                 if reportParams[4].text == "Характеристики  совпадают с ПТС":
@@ -126,7 +130,8 @@ def getCar(url):
                     else:
                         carPassportChecker = False
             return(registrationsNumber, carPassportChecker)
-        else:
+        # else:
+        except:
             return(0, False)
     # def findEquipment(fieldOfSearch):
     #     arrOfEquipment = []
@@ -355,15 +360,16 @@ for i in range(46333589,46333789):
     else:
         logger.info(f"Detected special transport with ID {strNum}")
 
-# currentURL = f'https://klin.drom.ru/renault/sandero_stepway/46333599.html'
+# currentURL = f'https://klin.drom.ru/renault/sandero_stepway/46333623.html'
 # headers = {
 #     'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36'}
 # response = requests.get(currentURL, headers=headers)
 # response.encoding = response.apparent_encoding
 # soup = BeautifulSoup(response.text, 'lxml')
-# if getCar(currentURL) != 'Спецтехника':
+# if getCar(currentURL) != 'Do not operate with':
 #     currentDict = getCar(currentURL)
-#     con.insertData(currentDict['Имя'], currentDict['Год'], currentDict['Дата публикации'], currentDict['Совпадение с ПТС'], currentDict['Кол-во регистраций'], currentDict['Топливо'], currentDict['Объем'], currentDict['Мощность, л.с.'], currentDict['Налог'], currentDict['Привод'], currentDict['Цвет'], currentDict['Пробег, км'], currentDict['Левый руль?'], currentURL)
+#     print(currentDict)
+#     #con.insertData(currentDict['Имя'], currentDict['Год'], currentDict['Дата публикации'], currentDict['Совпадение с ПТС'], currentDict['Кол-во регистраций'], currentDict['Топливо'], currentDict['Объем'], currentDict['Мощность, л.с.'], currentDict['Налог'], currentDict['Привод'], currentDict['Цвет'], currentDict['Пробег, км'], currentDict['Левый руль?'], currentURL)
 # else:
 #     print('bruh', currentURL)
 parser.quit()
