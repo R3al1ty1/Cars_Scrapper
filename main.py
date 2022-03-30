@@ -24,13 +24,15 @@ def getCar(url):
     #headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36'}
     headers = Headers().generate()
     response = requests.get(url, headers=headers)
+    if response.status_code == 404:
+        return "Do not operate with"
     response.encoding = response.apparent_encoding
     soup = BeautifulSoup(response.text, 'lxml')
     fieldOfSearch = soup.find_all('tr', class_='css-11ylakv ezjvm5n0') #specific row where data is stored (engine, engine volume, mileage etc.)
     foundCarFeatures = {}
     uselessAd = soup.find_all('span', class_='css-1sk0lam e2rnzmt0')
     if uselessAd[1].text == "Спецтехника и грузовики: объявления о продаже и покупке":
-        return "Спецтехника"
+        return "Do not operate with"
     def findName():
         titleName = soup.find_all('h1', class_='css-1tplio9 e18vbajn0')
         carName = titleName[0].find_all('span')[0].text
@@ -351,7 +353,7 @@ for i in range(46333589,46333789):
     # response = requests.get(currentURL, headers=headers)
     # response.encoding = response.apparent_encoding
     # soup = BeautifulSoup(response.text, 'lxml')
-    if (currentDict := getCar(currentURL)) != 'Спецтехника':
+    if (currentDict := getCar(currentURL)) != "Do not operate with":
         logger.info(f"Processed ID {strNum}")
         con.insertData(currentDict['Имя'], currentDict['Год'], currentDict['Дата публикации'], currentDict['Совпадение с ПТС'], currentDict['Кол-во регистраций'], currentDict['Топливо'], currentDict['Объем'], currentDict['Мощность, л.с.'], currentDict['Налог'], currentDict['Привод'], currentDict['Цвет'], currentDict['Пробег, км'], currentDict['Левый руль?'], currentURL)
     else:
