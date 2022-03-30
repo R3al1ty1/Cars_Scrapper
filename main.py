@@ -352,10 +352,10 @@ for i in range(46333589,46333789):
     # response.encoding = response.apparent_encoding
     # soup = BeautifulSoup(response.text, 'lxml')
     if (currentDict := getCar(currentURL)) != 'Спецтехника':
-        logger.info(f"Обработана ссылка с ID {strNum}")
+        logger.info(f"Processed ID {strNum}")
         con.insertData(currentDict['Имя'], currentDict['Год'], currentDict['Дата публикации'], currentDict['Совпадение с ПТС'], currentDict['Кол-во регистраций'], currentDict['Топливо'], currentDict['Объем'], currentDict['Мощность, л.с.'], currentDict['Налог'], currentDict['Привод'], currentDict['Цвет'], currentDict['Пробег, км'], currentDict['Левый руль?'], currentURL)
     else:
-        logger.info(f"Найдена спецтехника по ID {strNum}")
+        logger.info(f"Detected special transport with ID {strNum}")
 
 # currentURL = f'https://klin.drom.ru/renault/sandero_stepway/46333599.html'
 # headers = {
