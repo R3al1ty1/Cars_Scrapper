@@ -10,7 +10,7 @@ from transliterate import translit, get_available_language_codes
 from fake_headers import Headers
 from loguru import logger
 
-geckodriverLocation = r"/Users/user/Documents/geckodriver" # Location of geckodriver
+geckodriverLocation = r"/Users/Nasa/Documents/geckodriver" # Location of geckodriver
 firefoxProfile = r"/Users/Nasa/Library/Application Support/Firefox/Profiles/459ixwje.default" # Selected Firefox profile
 
 service = Service(geckodriverLocation) # Setting up location
@@ -333,22 +333,22 @@ def generationGet(currentBrand,model) -> list:
 #print(generationGet('Toyota','Camry'))
 #print(getCar('https://vladivostok.drom.ru/honda/fit_shuttle/46333610.html'))
 
-def creationOfDB(lower_ind,upper_ind):
-    class connectionDB:
-        def __init__(self):
-            self.connection = psycopg2.connect(
-                host = "194.87.102.109",
-                database = "CarsDB",
-                user = "postgres",
-                password = "CarsScrapper123!",
-            )
-        def getCursor(self):
-            return self.connection.cursor()
-        def insertData(self,name,year,dateOfPublish,concidence,registrationsnumber,fuelType,engineVolume,enginePower,tax,wheelDrive,color,mileage,leftSidedSW,url):
-            curs = self.getCursor()
-            curs.execute(f"INSERT INTO main.ads (name,year,dateOfPublish,concidence,registrationsnumber,fuelType,engineVolume,enginePower,tax,wheelDrive,color,mileage,leftSidedSW,url) VALUES ('{name}',{year},'{dateOfPublish}',{concidence},{registrationsnumber},'{fuelType}','{engineVolume}',{enginePower},{tax},'{wheelDrive}','{color}',{mileage},{leftSidedSW},'{url}')")
-            self.connection.commit()
+class connectionDB:
+    def __init__(self):
+        self.connection = psycopg2.connect(
+            host = "194.87.102.109",
+            database = "CarsDB",
+            user = "postgres",
+            password = "CarsScrapper123!",
+        )
+    def getCursor(self):
+        return self.connection.cursor()
+    def insertData(self,name,year,dateOfPublish,concidence,registrationsnumber,fuelType,engineVolume,enginePower,tax,wheelDrive,color,mileage,leftSidedSW,url):
+        curs = self.getCursor()
+        curs.execute(f"INSERT INTO main.ads (name,year,dateOfPublish,concidence,registrationsnumber,fuelType,engineVolume,enginePower,tax,wheelDrive,color,mileage,leftSidedSW,url) VALUES ('{name}',{year},'{dateOfPublish}',{concidence},{registrationsnumber},'{fuelType}','{engineVolume}',{enginePower},{tax},'{wheelDrive}','{color}',{mileage},{leftSidedSW},'{url}')")
+        self.connection.commit()
 
+def creationOfDB(lower_ind,upper_ind):
     connection = psycopg2.connect(
                 host = "194.87.102.109",
                 database = "CarsDB",
@@ -367,4 +367,6 @@ def creationOfDB(lower_ind,upper_ind):
         else:
             logger.info(f"Detected special transport with ID {strNum}")
     parser.quit()
-creationOfDB(46334115,46334125)
+
+if __name__ == "__main__":
+    creationOfDB(46334115,46334125)
