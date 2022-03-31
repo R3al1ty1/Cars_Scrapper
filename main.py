@@ -10,7 +10,7 @@ from transliterate import translit, get_available_language_codes
 from fake_headers import Headers
 from loguru import logger
 
-geckodriverLocation = r"/Users/Nasa/Documents/geckodriver" # Location of geckodriver
+geckodriverLocation = r"/Users/user/Documents/geckodriver" # Location of geckodriver
 firefoxProfile = r"/Users/Nasa/Library/Application Support/Firefox/Profiles/459ixwje.default" # Selected Firefox profile
 
 service = Service(geckodriverLocation) # Setting up location
@@ -31,18 +31,28 @@ def getCar(url):
     response.encoding = response.apparent_encoding
     soup = BeautifulSoup(response.text, 'lxml')
     fieldOfSearch = soup.find_all('tr', class_='css-11ylakv ezjvm5n0') #specific row where data is stored (engine, engine volume, mileage etc.)
-    foundCarFeatures = {'Имя' : '-','Год': 0,'Дата публикации': '-','Совпадение с ПТС': True,'Кол-во регистраций': 0,'Топливо': '-','Объем': '-','Мощность, л.с.': 0,'Налог': 0,'Привод': '-','Цвет': '-','Пробег, км': 0,'Левый руль?': True}
+    foundCarFeatures = {'name' : '-','year': 0,'dateOfPublish': '-','concidence': True,'registrationsNumber': 0,'fuelType': '-','volume': '-','power, hp': 0,'tax': 0,'wheelDrive': '-','color': '-','mileage, km': 0,'leftSidedSW': True}
     uselessAd = soup.find_all('span', class_='css-1sk0lam e2rnzmt0')
+    motoAd = soup.find_all('a', class_ = 'auto-shy')
+    if motoAd != []:
+        if motoAd[1].text == "Продажа мото":
+            return "Do not operate with"
     if uselessAd[1].text == "Спецтехника и грузовики: объявления о продаже и покупке":
         return "Do not operate with"
+    notPaidAd = soup.find_all('div', class_ = 'css-va2nzf e1lm3vns0')
+    if notPaidAd != []:
+        if "Пожалуйста, не забудьте" in notPaidAd[0].text:
+            return "Do not operate with"
+    notPublished = soup.find_all('span', class_ = 'css-ik080n e162wx9x0')
+    if notPublished != []:
+        if "Объявление не опубликовано." in notPublished[0].text:
+            return "Do not operate with"
     def findName():
         titleName = soup.find_all('h1', class_='css-1tplio9 e18vbajn0')
         carName = titleName[0].find_all('span')[0].text
         carName = carName.split(',')
         nameOfCar = carName[0].replace('Продажа', '')
-        # nameOfCar = nameOfCar.replace(' ', '_')
-        # if nameOfCar[0] == '_':
-        #     nameOfCar = nameOfCar[1:]
+        nameOfCar = translit(nameOfCar, "ru", reversed=True)
         return(nameOfCar.strip())
     def findDateOfPublishment():
         dateClass = soup.find_all('div', class_ = 'css-yt5agb e1xuf3p90')
@@ -66,8 +76,10 @@ def getCar(url):
         engineSpecs = engineFieldOfSearch[0].find_all('span')[0].text
         engineSpecs = engineSpecs.split(',')
         fuelType = engineSpecs[0]
-        engineVolume = engineSpecs[1]
-        engineVolume = engineVolume.replace('л', '')
+        engineVolume = '0'
+        if len(engineSpecs) > 1:
+            engineVolume = engineSpecs[1]
+            engineVolume = engineVolume.replace('л', '')
         return(fuelType.strip(), engineVolume.strip())
     def findPower(fieldOfSearch):
         powerFieldOfSearch = fieldOfSearch.find_all('td', class_ = 'css-7whdrf ezjvm5n1')
@@ -115,7 +127,6 @@ def getCar(url):
         try:
             reportParams = fieldOfSearch.find_all('a', class_ = 'css-17f5zdi e1wvjnck0')
             listOfRegistrations = ['1','2','3','4','5','6','7','8','9']
-        # if len(reportParams) > 5:
             if reportParams[5].text[1] == ' ':
                 registrationsNumber = int(reportParams[5].text[0])
                 if reportParams[4].text == "Характеристики  совпадают с ПТС":
@@ -130,7 +141,6 @@ def getCar(url):
                     else:
                         carPassportChecker = False
             return(registrationsNumber, carPassportChecker)
-        # else:
         except:
             return(0, False)
     # def findEquipment(fieldOfSearch):
@@ -144,29 +154,29 @@ def getCar(url):
     #     fuelConsumptionClass = soup.find_all('div', class_ = 'b-model-specs__icon b-ico b-ico_type_car-sedan')
     #     fuelConsumption = fuelConsumptionClass[0].find_all('div', class_ = 'b-model-specs__text').text
     #     return(fuelConsumptionClass)
-    foundCarFeatures['Имя'] = findName()
-    foundCarFeatures['Год'] = findYear()
-    foundCarFeatures['Дата публикации'] = findDateOfPublishment()
-    foundCarFeatures['Совпадение с ПТС'] = reportAnalyzer(soup)[1]
-    foundCarFeatures['Кол-во регистраций'] = reportAnalyzer(soup)[0]
+    foundCarFeatures['name'] = findName()
+    foundCarFeatures['year'] = findYear()
+    foundCarFeatures['dateOfPublish'] = findDateOfPublishment()
+    foundCarFeatures['concidence'] = reportAnalyzer(soup)[1]
+    foundCarFeatures['registrationsNumber'] = reportAnalyzer(soup)[0]
     for gatheredCarFeature in fieldOfSearch:
         requestedCarFeature = gatheredCarFeature.find_all('th', class_='css-1y4xbwk ezjvm5n2')
         textOfRequestedCarFeature = requestedCarFeature[0].text
         if textOfRequestedCarFeature == "Двигатель":
-            foundCarFeatures['Топливо'] = findVolume(gatheredCarFeature)[0]
-            foundCarFeatures['Объем'] = findVolume(gatheredCarFeature)[1]
+            foundCarFeatures['fuelType'] = findVolume(gatheredCarFeature)[0]
+            foundCarFeatures['volume'] = findVolume(gatheredCarFeature)[1]
         if textOfRequestedCarFeature == "Мощность":
             hp = findPower(gatheredCarFeature)
-            foundCarFeatures['Мощность, л.с.'] = hp
-            foundCarFeatures['Налог'] = computeTax(hp)
+            foundCarFeatures['power, hp'] = hp
+            foundCarFeatures['tax'] = computeTax(hp)
         if textOfRequestedCarFeature == "Пробег, км":
-            foundCarFeatures['Пробег, км'] = findMileage(gatheredCarFeature)
+            foundCarFeatures['mileage, km'] = findMileage(gatheredCarFeature)
         if textOfRequestedCarFeature == "Привод":
-            foundCarFeatures['Привод'] = findWD(gatheredCarFeature)
+            foundCarFeatures['wheelDrive'] = findWD(gatheredCarFeature)
         if textOfRequestedCarFeature == "Цвет":
-            foundCarFeatures['Цвет'] = findColor(gatheredCarFeature)
+            foundCarFeatures['color'] = findColor(gatheredCarFeature)
         if textOfRequestedCarFeature == "Руль":
-            foundCarFeatures['Левый руль?'] = steeringWheelSide(gatheredCarFeature)
+            foundCarFeatures['leftSidedSW'] = steeringWheelSide(gatheredCarFeature)
     return foundCarFeatures
 
 def scrollElement(selectedElement, times:int):
@@ -319,57 +329,42 @@ def generationGet(currentBrand,model) -> list:
             Years = splitOfYearsAndFrame[0].strip()
             finalArr.append([Number, restNumber, Frame, Years])
     return(finalArr)
+
 #print(generationGet('Toyota','Camry'))
 #print(getCar('https://vladivostok.drom.ru/honda/fit_shuttle/46333610.html'))
 
-class connectionDB:
-    def __init__(self):
-        self.connection = psycopg2.connect(
-            host = "194.87.102.109",
-            database = "CarsDB",
-            user = "postgres",
-            password = "CarsScrapper123!",
-        )
-    def getCursor(self):
-        return self.connection.cursor()
-    def insertData(self,name,year,dateOfPublish,concidence,registrationsnumber,fuelType,engineVolume,enginePower,tax,wheelDrive,color,mileage,leftSidedSW,url):
-        curs = self.getCursor()
-        curs.execute(f"INSERT INTO main.ads (name,year,dateOfPublish,concidence,registrationsnumber,fuelType,engineVolume,enginePower,tax,wheelDrive,color,mileage,leftSidedSW,url) VALUES ('{name}',{year},'{dateOfPublish}',{concidence},{registrationsnumber},'{fuelType}','{engineVolume}',{enginePower},{tax},'{wheelDrive}','{color}',{mileage},{leftSidedSW},'{url}')")
-        self.connection.commit()
+def creationOfDB(lower_ind,upper_ind):
+    class connectionDB:
+        def __init__(self):
+            self.connection = psycopg2.connect(
+                host = "194.87.102.109",
+                database = "CarsDB",
+                user = "postgres",
+                password = "CarsScrapper123!",
+            )
+        def getCursor(self):
+            return self.connection.cursor()
+        def insertData(self,name,year,dateOfPublish,concidence,registrationsnumber,fuelType,engineVolume,enginePower,tax,wheelDrive,color,mileage,leftSidedSW,url):
+            curs = self.getCursor()
+            curs.execute(f"INSERT INTO main.ads (name,year,dateOfPublish,concidence,registrationsnumber,fuelType,engineVolume,enginePower,tax,wheelDrive,color,mileage,leftSidedSW,url) VALUES ('{name}',{year},'{dateOfPublish}',{concidence},{registrationsnumber},'{fuelType}','{engineVolume}',{enginePower},{tax},'{wheelDrive}','{color}',{mileage},{leftSidedSW},'{url}')")
+            self.connection.commit()
 
-connection = psycopg2.connect(
-            host = "194.87.102.109",
-            database = "CarsDB",
-            user = "postgres",
-            password = "CarsScrapper123!",
-        )
+    connection = psycopg2.connect(
+                host = "194.87.102.109",
+                database = "CarsDB",
+                user = "postgres",
+                password = "CarsScrapper123!",
+            )
 
-con = connectionDB()
-initialURL = 'https://klin.drom.ru/renault/sandero_stepway/46333589.html'
-for i in range(46333589,46333789):
-    strNum = str(i)
-    currentURL = f'https://klin.drom.ru/renault/sandero_stepway/{strNum}.html'
-    # headers = {
-    #     'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36'}
-    # response = requests.get(currentURL, headers=headers)
-    # response.encoding = response.apparent_encoding
-    # soup = BeautifulSoup(response.text, 'lxml')
-    if (currentDict := getCar(currentURL)) != "Do not operate with":
-        logger.info(f"Processed ID {strNum}")
-        con.insertData(currentDict['Имя'], currentDict['Год'], currentDict['Дата публикации'], currentDict['Совпадение с ПТС'], currentDict['Кол-во регистраций'], currentDict['Топливо'], currentDict['Объем'], currentDict['Мощность, л.с.'], currentDict['Налог'], currentDict['Привод'], currentDict['Цвет'], currentDict['Пробег, км'], currentDict['Левый руль?'], currentURL)
-    else:
-        logger.info(f"Detected special transport with ID {strNum}")
-
-# currentURL = f'https://klin.drom.ru/renault/sandero_stepway/46333623.html'
-# headers = {
-#     'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36'}
-# response = requests.get(currentURL, headers=headers)
-# response.encoding = response.apparent_encoding
-# soup = BeautifulSoup(response.text, 'lxml')
-# if getCar(currentURL) != 'Do not operate with':
-#     currentDict = getCar(currentURL)
-#     print(currentDict)
-#     #con.insertData(currentDict['Имя'], currentDict['Год'], currentDict['Дата публикации'], currentDict['Совпадение с ПТС'], currentDict['Кол-во регистраций'], currentDict['Топливо'], currentDict['Объем'], currentDict['Мощность, л.с.'], currentDict['Налог'], currentDict['Привод'], currentDict['Цвет'], currentDict['Пробег, км'], currentDict['Левый руль?'], currentURL)
-# else:
-#     print('bruh', currentURL)
-parser.quit()
+    con = connectionDB()
+    initialURL = 'https://klin.drom.ru/renault/sandero_stepway/46333589.html'
+    for i in range(lower_ind,upper_ind):
+        strNum = str(i)
+        currentURL = f'https://klin.drom.ru/renault/sandero_stepway/{strNum}.html'
+        if (currentDict := getCar(currentURL)) != "Do not operate with":
+            logger.info(f"Processed ID {strNum}")
+            con.insertData(currentDict['name'], currentDict['year'], currentDict['dateOfPublish'], currentDict['concidence'], currentDict['registrationsNumber'], currentDict['fuelType'], currentDict['volume'], currentDict['power, hp'], currentDict['tax'], currentDict['wheelDrive'], currentDict['color'], currentDict['mileage, km'], currentDict['leftSidedSW'], currentURL)
+        else:
+            logger.info(f"Detected special transport with ID {strNum}")
+    parser.quit()
+creationOfDB(46334115,46334125)
