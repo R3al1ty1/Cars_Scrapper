@@ -10,11 +10,11 @@ class TestDromParser(unittest.TestCase):
     def testFuelPetrol(self):
         url = "https://odintsovo.drom.ru/skoda/octavia/46333650.html"
         data = getCar(url)
-        self.assertEqual(data["fuelType"], "бензин")
+        self.assertEqual(data["fuelType"], "petrol")
     def testFuelDiesel(self):
-        url = "https://krasnoyarsk.drom.ru/bmw/3-series/"
+        url = "https://krasnoyarsk.drom.ru/bmw/3-series/46325623.html"
         data = getCar(url)
-        self.assertEqual(data["fuelType"], "дизель")
+        self.assertEqual(data["fuelType"], "diesel")
     def testPower_1(self):
         url = "https://klin.drom.ru/renault/sandero_stepway/46333979.html"
         data = getCar(url)
@@ -23,7 +23,6 @@ class TestDromParser(unittest.TestCase):
         url = "https://klin.drom.ru/renault/sandero_stepway/46333993.html"
         data = getCar(url)
         self.assertEqual(data["power, hp"], 69)
-    def testWheelDriveRear
 
 if __name__ == '__main__':
     unittest.main()

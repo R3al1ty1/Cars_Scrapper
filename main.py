@@ -9,19 +9,24 @@ from selenium.webdriver.firefox.options import Options
 from transliterate import translit, get_available_language_codes
 from fake_headers import Headers
 from loguru import logger
+import json
 
-geckodriverLocation = r"/Users/Nasa/Documents/geckodriver" # Location of geckodriver
-firefoxProfile = r"/Users/Nasa/Library/Application Support/Firefox/Profiles/459ixwje.default" # Selected Firefox profile
+with open("colorsTranslations.json", 'r') as f:
+    colorsList = json.load(f)
 
-service = Service(geckodriverLocation) # Setting up location
+geckodriverLocation = r"/Users/Nasa/Documents/geckodriver"  # Location of geckodriver
+firefoxProfile = r"/Users/Nasa/Library/Application Support/Firefox/Profiles/459ixwje.default"  # Selected Firefox profile
+
+service = Service(geckodriverLocation)  # Setting up location
 
 options = Options()
 options.headless = True
-options.set_preference('profile', firefoxProfile) # Setting up profile
+options.set_preference('profile', firefoxProfile)  # Setting up profile
 parser = webdriver.Firefox(service=service, options=options)  # Creating webdriver
 
+
 def getCar(url):
-    #headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36'}
+    # headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36'}
     headers = Headers().generate()
     response = requests.get(url, headers=headers)
     if response.status_code != 200:
@@ -30,71 +35,104 @@ def getCar(url):
         return "Do not operate with"
     response.encoding = response.apparent_encoding
     soup = BeautifulSoup(response.text, 'lxml')
-    fieldOfSearch = soup.find_all('tr', class_='css-11ylakv ezjvm5n0') #specific row where data is stored (engine, engine volume, mileage etc.)
-    foundCarFeatures = {'name' : '-','year': 0,'dateOfPublish': '-','concidence': True,'registrationsNumber': 0,'fuelType': '-','volume': '-','power, hp': 0,'tax': 0,'wheelDrive': '-','color': '-','mileage, km': 0,'leftSidedSW': True}
+    fieldOfSearch = soup.find_all('tr',
+                                  class_='css-11ylakv ezjvm5n0')  # specific row where data is stored (engine, engine volume, mileage etc.)
+    foundCarFeatures = {'name': '-', 'year': 0, 'dateOfPublish': '-', 'concidence': True, 'registrationsNumber': 0,
+                        'fuelType': '-', 'volume': '-', 'power, hp': 0, 'tax': 0, 'wheelDrive': '-', 'color': '-',
+                        'mileage, km': 0, 'leftSidedSW': True}
     uselessAd = soup.find_all('span', class_='css-1sk0lam e2rnzmt0')
-    motoAd = soup.find_all('a', class_ = 'auto-shy')
+    motoAd = soup.find_all('a', class_='auto-shy')
     if motoAd != []:
         if motoAd[1].text == "Продажа мото":
             return "Do not operate with"
     if uselessAd[1].text == "Спецтехника и грузовики: объявления о продаже и покупке":
         return "Do not operate with"
-    notPaidAd = soup.find_all('div', class_ = 'css-va2nzf e1lm3vns0')
+    notPaidAd = soup.find_all('div', class_='css-va2nzf e1lm3vns0')
     if notPaidAd != []:
         if "Пожалуйста, не забудьте" in notPaidAd[0].text:
             return "Do not operate with"
-    notPublished = soup.find_all('span', class_ = 'css-ik080n e162wx9x0')
+    notPublished = soup.find_all('span', class_='css-ik080n e162wx9x0')
     if notPublished != []:
         if "Объявление не опубликовано." in notPublished[0].text:
             return "Do not operate with"
+
     def findName():
-        titleName = soup.find_all('h1', class_='css-1tplio9 e18vbajn0')
-        carName = titleName[0].find_all('span')[0].text
+        titleName = soup.find_all('h1', class_='css-1pbdh72 e18vbajn0')
+        carName = titleName[0].text
         carName = carName.split(',')
         nameOfCar = carName[0].replace('Продажа', '')
         nameOfCar = translit(nameOfCar, "ru", reversed=True)
-        return(nameOfCar.strip())
+        return (nameOfCar.strip())
+
     def findDateOfPublishment():
-        dateClass = soup.find_all('div', class_ = 'css-yt5agb e1xuf3p90')
-        publishDate = dateClass[0].find_all('div', class_ = 'css-pxeubi evnwjo70')[0].text
-        return(publishDate[len(publishDate)-10:])
+        dateClass = soup.find_all('div', class_='css-yt5agb e1xuf3p90')
+        publishDate = dateClass[0].find_all('div', class_='css-pxeubi evnwjo70')[0].text
+        return (publishDate[len(publishDate) - 10:])
+
     def findYear():
-        titleName = soup.find_all('h1', class_='css-1tplio9 e18vbajn0')
-        carName = titleName[0].find_all('span')[0].text
+        titleName = soup.find_all('h1', class_='css-1pbdh72 e18vbajn0')
+        carName = titleName[0].text
         carName = carName.split(',')
         yearOfProduction = carName[1][0:5]
         yearOfProduction = int(yearOfProduction)
         return (yearOfProduction)
+
     def findMileage(fieldOfSearch):
-        mileage = fieldOfSearch.find_all('td', class_ = 'css-7whdrf ezjvm5n1')
+        mileage = fieldOfSearch.find_all('td', class_='css-7whdrf ezjvm5n1')
         textForamtOfMileage = mileage[0].text
         textForamtOfMileage = textForamtOfMileage.replace('\xa0', '').strip()
         textForamtOfMileage = int(textForamtOfMileage.split(",")[0])
-        return(textForamtOfMileage)
+        return (textForamtOfMileage)
+
     def findVolume(fieldOfSearch):
-        engineFieldOfSearch = fieldOfSearch.find_all('td', class_ = 'css-7whdrf ezjvm5n1')
+        fuelTypesLocalisations = {"бензин": "petrol",
+                                 "дизель": "diesel",
+                                 "электро": "electric"
+                                 }
+        engineFieldOfSearch = fieldOfSearch.find_all('td', class_='css-7whdrf ezjvm5n1')
         engineSpecs = engineFieldOfSearch[0].find_all('span')[0].text
         engineSpecs = engineSpecs.split(',')
         fuelType = engineSpecs[0]
+        if fuelType.strip() in fuelTypesLocalisations:
+            fuelType = fuelTypesLocalisations[fuelType.strip()]
         engineVolume = '0'
         if len(engineSpecs) > 1:
             engineVolume = engineSpecs[1]
             engineVolume = engineVolume.replace('л', '')
-        return(fuelType.strip(), engineVolume.strip())
+        return (fuelType.strip(), engineVolume.strip())
+
     def findPower(fieldOfSearch):
-        powerFieldOfSearch = fieldOfSearch.find_all('td', class_ = 'css-7whdrf ezjvm5n1')
+        powerFieldOfSearch = fieldOfSearch.find_all('td', class_='css-7whdrf ezjvm5n1')
         enginePower = powerFieldOfSearch[0].find_all('span')
         textFormatOfPower = enginePower[0].text
         textFormatOfPower = textFormatOfPower.replace('налог', '')
         textFormatOfPower = textFormatOfPower.replace(',', '')
         textFormatOfPower = textFormatOfPower.replace('\xa0', ' ')
-        return(int(textFormatOfPower[:-5]))
+        return (int(textFormatOfPower[:-5]))
+
     def findWD(fieldOfSearch):
-        carWheelDrive = fieldOfSearch.find_all('td', class_ = 'css-7whdrf ezjvm5n1')
-        return(carWheelDrive[0].text.strip())
+        WDLocalisations = {
+            "передний": "front",
+            "задний": "back",
+        }
+        carWheelDrive = fieldOfSearch.find_all('td', class_='css-7whdrf ezjvm5n1')
+        carWheelDrive = carWheelDrive[0].text.strip()
+        if carWheelDrive in WDLocalisations:
+            carWheelDrive = WDLocalisations[carWheelDrive]
+        return (carWheelDrive)
+
     def findColor(fieldOfSearch):
-        carColor = fieldOfSearch.find_all('td', class_ = 'css-7whdrf ezjvm5n1')
-        return(carColor[0].text.strip())
+        global colorsList
+        carColor = fieldOfSearch.find_all('td', class_='css-7whdrf ezjvm5n1')
+        carColor = carColor[0].text.strip()
+        if carColor in colorsList:
+            carColor = colorsList[carColor]
+        else:
+            saveColor = input(f"{carColor} is ")
+            colorsList[carColor] = saveColor
+            carColor = saveColor
+        return (carColor)
+
     def computeTax(hp):
         out = 0
         if hp <= 100:
@@ -114,19 +152,21 @@ def getCar(url):
         else:
             out = hp * 150
         return out
+
     def steeringWheelSide(fieldOfSearch):
-        sideOfSW = fieldOfSearch.find_all('td', class_ = 'css-7whdrf ezjvm5n1')
+        sideOfSW = fieldOfSearch.find_all('td', class_='css-7whdrf ezjvm5n1')
         isLeftSided = True
         textFormatOfSide = sideOfSW[0].text
         if textFormatOfSide == "правый":
             isLeftSided = False
-        return(isLeftSided)
+        return (isLeftSided)
+
     def reportAnalyzer(fieldOfSearch):
         registrationsNumber = 0
         carPassportChecker = False
         try:
-            reportParams = fieldOfSearch.find_all('a', class_ = 'css-17f5zdi e1wvjnck0')
-            listOfRegistrations = ['1','2','3','4','5','6','7','8','9']
+            reportParams = fieldOfSearch.find_all('a', class_='css-17f5zdi e1wvjnck0')
+            listOfRegistrations = ['1', '2', '3', '4', '5', '6', '7', '8', '9']
             if reportParams[5].text[1] == ' ':
                 registrationsNumber = int(reportParams[5].text[0])
                 if reportParams[4].text == "Характеристики  совпадают с ПТС":
@@ -140,9 +180,10 @@ def getCar(url):
                         carPassportChecker = True
                     else:
                         carPassportChecker = False
-            return(registrationsNumber, carPassportChecker)
+            return (registrationsNumber, carPassportChecker)
         except:
-            return(0, False)
+            return (0, False)
+
     # def findEquipment(fieldOfSearch):
     #     arrOfEquipment = []
     #     carEquipmentClass = fieldOfSearch.find_all('a', class_ = 'css-1n9bvfr e1oy5ngb0')
@@ -179,60 +220,70 @@ def getCar(url):
             foundCarFeatures['leftSidedSW'] = steeringWheelSide(gatheredCarFeature)
     return foundCarFeatures
 
-def scrollElement(selectedElement, times:int):
+
+def scrollElement(selectedElement, times: int):
     for _ in range(times):
-        selectedElement.send_keys(Keys.DOWN) # Emulating press of DOWN button for {times} times
+        selectedElement.send_keys(Keys.DOWN)  # Emulating press of DOWN button for {times} times
+
 
 def brandsGet(parser) -> set:
     parser.get("https://auto.drom.ru")  # Getting web page
 
-    brandsList = parser.find_element(by=By.XPATH, value="/html/body/div[2]/div[5]/div[1]/div[1]/div[3]/form/div/div[1]/div[1]/div/div[1]/input") # Locating list element
-    brandsList.send_keys(u" ") # Sending space to show up the list
-    gatheredBrands = set() # Creating empty set of car brands
+    brandsList = parser.find_element(by=By.XPATH,
+                                     value="/html/body/div[2]/div[5]/div[1]/div[1]/div[3]/form/div/div[1]/div[1]/div/div[1]/input")  # Locating list element
+    brandsList.send_keys(u" ")  # Sending space to show up the list
+    gatheredBrands = set()  # Creating empty set of car brands
 
     for _ in range(20):
-        soup = BeautifulSoup(parser.page_source, 'lxml') # Creating parser object
-        brandName = soup.find_all('div', class_= 'css-1r0zrug e1uu17r80') # Looking for all elements with car brands name
+        soup = BeautifulSoup(parser.page_source, 'lxml')  # Creating parser object
+        brandName = soup.find_all('div',
+                                  class_='css-1r0zrug e1uu17r80')  # Looking for all elements with car brands name
 
         for element in brandName:
             try:
-                txt = element.text # Getting raw text from element
+                txt = element.text  # Getting raw text from element
                 if txt != '' and not "Прочие авто" in txt and not "Любая модель" in txt:
-                    txt = translit(txt, "ru", reversed=True) # Transliterating russian brands to english
-                    txt = txt[:txt.index("(")].strip() # Removing "(n)" structure from the brand name
-                    gatheredBrands.add(txt) # Trying to get brand name from selected element, else passing to the next one
+                    txt = translit(txt, "ru", reversed=True)  # Transliterating russian brands to english
+                    txt = txt[:txt.index("(")].strip()  # Removing "(n)" structure from the brand name
+                    gatheredBrands.add(
+                        txt)  # Trying to get brand name from selected element, else passing to the next one
             except:
                 pass
-        scrollElement(brandsList, 8) # Scrolling list eight times (emulation of pressing DOWN button eight times)
-    return(sorted(gatheredBrands))
+        scrollElement(brandsList, 8)  # Scrolling list eight times (emulation of pressing DOWN button eight times)
+    return (sorted(gatheredBrands))
 
-def modelsGet(currentBrand,parser) -> set:
-    currentBrand = currentBrand.lower().replace(" ","_")
-    parser.get(f"https://auto.drom.ru/{currentBrand}/")# Getting web page
+
+def modelsGet(currentBrand, parser) -> set:
+    currentBrand = currentBrand.lower().replace(" ", "_")
+    parser.get(f"https://auto.drom.ru/{currentBrand}/")  # Getting web page
     try:
-        brandsList = parser.find_element(by=By.XPATH, value="/html/body/div[2]/div[5]/div[1]/div[1]/div[2]/form/div/div[1]/div[2]/div/div[1]/input")
+        brandsList = parser.find_element(by=By.XPATH,
+                                         value="/html/body/div[2]/div[5]/div[1]/div[1]/div[2]/form/div/div[1]/div[2]/div/div[1]/input")
     except:
-         brandsList = parser.find_element(by=By.XPATH,
+        brandsList = parser.find_element(by=By.XPATH,
                                          value="/html/body/div[2]/div[4]/div[1]/div[1]/div[2]/form/div/div[1]/div[2]/div/div[1]/input")
     modelsList.send_keys(u" ")
     gatheredModels = set()
     for _ in range(20):
-        soup = BeautifulSoup(parser.page_source, 'lxml') # Creating parser object
-        brandNameClass = soup.find_all('div', class_= 'css-2qi5nz e154wmfa0') # Looking for all elements with car brands name
-        brandName = brandNameClass[0].find_all('div', class_= 'css-1r0zrug e1uu17r80')
+        soup = BeautifulSoup(parser.page_source, 'lxml')  # Creating parser object
+        brandNameClass = soup.find_all('div',
+                                       class_='css-2qi5nz e154wmfa0')  # Looking for all elements with car brands name
+        brandName = brandNameClass[0].find_all('div', class_='css-1r0zrug e1uu17r80')
         for element in brandName:
             try:
-                txt = element.text # Getting raw text from element
+                txt = element.text  # Getting raw text from element
                 if txt != '' and not "Прочие авто" in txt:
-                    txt = translit(txt, "ru", reversed=True) # Transliterating russian brands to english
-                    txt = txt[:txt.index("(")].strip() # Removing "(n)" structure from the brand name
-                    gatheredModels.add(txt) # Trying to get brand name from selected element, else passing to the next one
+                    txt = translit(txt, "ru", reversed=True)  # Transliterating russian brands to english
+                    txt = txt[:txt.index("(")].strip()  # Removing "(n)" structure from the brand name
+                    gatheredModels.add(
+                        txt)  # Trying to get brand name from selected element, else passing to the next one
             except:
                 pass
         scrollElement(modelsList, 8)
-    return(sorted(gatheredModels))
+    return (sorted(gatheredModels))
 
-def generationGet(currentBrand,model) -> list:
+
+def generationGet(currentBrand, model) -> list:
     currentBrand = currentBrand.lower().replace(" ", "_")
     model = model.lower().replace(" ", "_")
     url = f'https://auto.drom.ru/{currentBrand}/{model}/'
@@ -245,15 +296,16 @@ def generationGet(currentBrand,model) -> list:
     parser.get(f"https://auto.drom.ru/{currentBrand}/{model}/")  # Getting web page
     try:
         generationsList = parser.find_element(by=By.XPATH,
-                                        value="/html/body/div[2]/div[4]/div[1]/div[1]/div[2]/form/div/div[1]/div[3]/div/div/div[1]/button")
+                                              value="/html/body/div[2]/div[4]/div[1]/div[1]/div[2]/form/div/div[1]/div[3]/div/div/div[1]/button")
     except:
         generationsList = parser.find_element(by=By.XPATH,
-                                        value="/html/body/div[2]/div[4]/div[1]/div[1]/div[2]/form/div/div[1]/div[3]/div/div/div[1]/button")
+                                              value="/html/body/div[2]/div[4]/div[1]/div[1]/div[2]/form/div/div[1]/div[3]/div/div/div[1]/button")
     generationsList.click()
     gatheredGenerations = list()
     soup = BeautifulSoup(parser.page_source, 'lxml')  # Creating parser object
     isSimplified = True
-    brandNameClass = soup.find_all('div', class_='css-2qi5nz e154wmfa0')  # Looking for all elements with car brands name
+    brandNameClass = soup.find_all('div',
+                                   class_='css-2qi5nz e154wmfa0')  # Looking for all elements with car brands name
     if brandNameClass == []:
         brandNameClass = soup.find_all('div', class_='css-q7s5zv e1i4uopi1')
         brandName = brandNameClass[0].find_all('div', class_='css-1xktnf etjsiba1')
@@ -263,26 +315,29 @@ def generationGet(currentBrand,model) -> list:
     for element in brandName:
         if isSimplified:
             try:
-               txt = element.text
-               txt = txt.replace('\xa0','')# Getting raw text from element
-               if txt != '' and not "Любое поколение" in txt:
-                   txt = translit(txt, "ru", reversed=True)  # Transliterating russian brands to english
-                   gatheredGenerations.append(txt)  # Trying to get brand name from selected element, else passing to the next one
+                txt = element.text
+                txt = txt.replace('\xa0', '')  # Getting raw text from element
+                if txt != '' and not "Любое поколение" in txt:
+                    txt = translit(txt, "ru", reversed=True)  # Transliterating russian brands to english
+                    gatheredGenerations.append(
+                        txt)  # Trying to get brand name from selected element, else passing to the next one
             except:
-               pass
+                pass
         else:
             prodYearsModel = element.find_all('div', class_='css-t5fg4a e162wx9x0')
             genAndRestyling = element.find_all('div', class_='css-1bnzx52 e162wx9x0')
             try:
                 txt = prodYearsModel[0].text
-                txt = txt.replace('\xa0','')# Getting raw text from element
+                txt = txt.replace('\xa0', '')  # Getting raw text from element
                 if txt != '' and not "Любое поколение" in txt:
-                   txt = translit(txt, "ru", reversed=True)  # Transliterating russian brands to english
-                   gatheredGenerations.append(txt)  # Trying to get brand name from selected element, else passing to the next one
+                    txt = translit(txt, "ru", reversed=True)  # Transliterating russian brands to english
+                    gatheredGenerations.append(
+                        txt)  # Trying to get brand name from selected element, else passing to the next one
                 txt = genAndRestyling[0].text  # Getting raw text from element
                 if txt != '' and not "Любое поколение" in txt:
                     txt = translit(txt, "ru", reversed=True)  # Transliterating russian brands to english
-                    gatheredGenerations.append(txt)  # Trying to get brand name from selected element, else passing to the next one
+                    gatheredGenerations.append(
+                        txt)  # Trying to get brand name from selected element, else passing to the next one
             except:
                 pass
     cnt = 0
@@ -301,10 +356,10 @@ def generationGet(currentBrand,model) -> list:
                     else:
                         restNumber = int(splitOfGenerationAndYears[0][2])
                         Years = splitOfGenerationAndYears[1].strip()
-                finalArr.append([Number, restNumber,Frame, Years])
+                finalArr.append([Number, restNumber, Frame, Years])
             else:
                 Number = int(elem[:elem.index(" ")])
-                Frame = elem[elem.index("(") + 1 : elem.index(")")]
+                Frame = elem[elem.index("(") + 1: elem.index(")")]
 
     else:
         for elem in gatheredGenerations:
@@ -324,49 +379,62 @@ def generationGet(currentBrand,model) -> list:
                     restNumber = 1
                 else:
                     restNumber = int(splitOfGenerationAndRestyling[1][1])
-            splitOfYearsAndFrame = newArr[i][0].split(",",1)
+            splitOfYearsAndFrame = newArr[i][0].split(",", 1)
             Frame = splitOfYearsAndFrame[1].strip()
             Years = splitOfYearsAndFrame[0].strip()
             finalArr.append([Number, restNumber, Frame, Years])
-    return(finalArr)
+    return (finalArr)
 
-#print(generationGet('Toyota','Camry'))
-#print(getCar('https://vladivostok.drom.ru/honda/fit_shuttle/46333610.html'))
+
+# print(generationGet('Toyota','Camry'))
+# print(getCar('https://vladivostok.drom.ru/honda/fit_shuttle/46333610.html'))
 
 class connectionDB:
     def __init__(self):
         self.connection = psycopg2.connect(
-            host = "194.87.102.109",
-            database = "CarsDB",
-            user = "postgres",
-            password = "CarsScrapper123!",
+            host="194.87.102.109",
+            database="CarsDB",
+            user="postgres",
+            password="CarsScrapper123!",
         )
+
     def getCursor(self):
         return self.connection.cursor()
-    def insertData(self,name,year,dateOfPublish,concidence,registrationsnumber,fuelType,engineVolume,enginePower,tax,wheelDrive,color,mileage,leftSidedSW,url):
+
+    def insertData(self, name, year, dateOfPublish, concidence, registrationsnumber, fuelType, engineVolume,
+                   enginePower, tax, wheelDrive, color, mileage, leftSidedSW, url):
         curs = self.getCursor()
-        curs.execute(f"INSERT INTO main.ads (name,year,dateOfPublish,concidence,registrationsnumber,fuelType,engineVolume,enginePower,tax,wheelDrive,color,mileage,leftSidedSW,url) VALUES ('{name}',{year},'{dateOfPublish}',{concidence},{registrationsnumber},'{fuelType}','{engineVolume}',{enginePower},{tax},'{wheelDrive}','{color}',{mileage},{leftSidedSW},'{url}')")
+        curs.execute(
+            f"INSERT INTO main.ads (name,year,dateOfPublish,concidence,registrationsnumber,fuelType,engineVolume,enginePower,tax,wheelDrive,color,mileage,leftSidedSW,url) VALUES ('{name}',{year},'{dateOfPublish}',{concidence},{registrationsnumber},'{fuelType}','{engineVolume}',{enginePower},{tax},'{wheelDrive}','{color}',{mileage},{leftSidedSW},'{url}')")
         self.connection.commit()
 
-def creationOfDB(lower_ind,upper_ind):
+
+def creationOfDB(lower_ind, upper_ind):
     connection = psycopg2.connect(
-                host = "194.87.102.109",
-                database = "CarsDB",
-                user = "postgres",
-                password = "CarsScrapper123!",
-            )
+        host="194.87.102.109",
+        database="CarsDB",
+        user="postgres",
+        password="CarsScrapper123!",
+    )
 
     con = connectionDB()
     initialURL = 'https://klin.drom.ru/renault/sandero_stepway/46333589.html'
-    for i in range(lower_ind,upper_ind):
+    for i in range(lower_ind, upper_ind):
         strNum = str(i)
         currentURL = f'https://klin.drom.ru/renault/sandero_stepway/{strNum}.html'
         if (currentDict := getCar(currentURL)) != "Do not operate with":
             logger.info(f"Processed ID {strNum}")
-            con.insertData(currentDict['name'], currentDict['year'], currentDict['dateOfPublish'], currentDict['concidence'], currentDict['registrationsNumber'], currentDict['fuelType'], currentDict['volume'], currentDict['power, hp'], currentDict['tax'], currentDict['wheelDrive'], currentDict['color'], currentDict['mileage, km'], currentDict['leftSidedSW'], currentURL)
+            con.insertData(currentDict['name'], currentDict['year'], currentDict['dateOfPublish'],
+                           currentDict['concidence'], currentDict['registrationsNumber'], currentDict['fuelType'],
+                           currentDict['volume'], currentDict['power, hp'], currentDict['tax'],
+                           currentDict['wheelDrive'], currentDict['color'], currentDict['mileage, km'],
+                           currentDict['leftSidedSW'], currentURL)
         else:
             logger.info(f"Detected special transport with ID {strNum}")
     parser.quit()
 
+
 if __name__ == "__main__":
-    creationOfDB(46334115,46334125)
+    creationOfDB(46334115, 46334155)
+    with open("colorsTranslations.json", "w+") as f:
+        json.dump(colorsList,f)
