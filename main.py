@@ -1,5 +1,3 @@
-import requests
-import psycopg2
 from misc import deCamel
 from bs4 import BeautifulSoup
 from selenium import webdriver
@@ -10,20 +8,24 @@ from selenium.webdriver.firefox.options import Options
 from transliterate import translit, get_available_language_codes
 from fake_headers import Headers
 from loguru import logger
+from constants import *
+
+import requests
+import psycopg2
 import json
 
 with open("colorsTranslations.json", 'r', encoding="utf-8") as f:
     colorsList = json.load(f)
 
-geckodriverLocation = r"/Users/Nasa/Documents/geckodriver"  # Location of geckodriver
-firefoxProfile = r"/Users/Nasa/Library/Application Support/Firefox/Profiles/459ixwje.default"  # Selected Firefox profile
-
-service = Service(geckodriverLocation)  # Setting up location
-
-options = Options()
-options.headless = True
-options.set_preference('profile', firefoxProfile)  # Setting up profile
-parser = webdriver.Firefox(service=service, options=options)  # Creating webdriver
+# geckodriverLocation = r"/Users/Nasa/Documents/geckodriver"  # Location of geckodriver
+# firefoxProfile = r"/Users/Nasa/Library/Application Support/Firefox/Profiles/459ixwje.default"  # Selected Firefox profile
+#
+# service = Service(geckodriverLocation)  # Setting up location
+#
+# options = Options()
+# options.headless = True
+# options.set_preference('profile', firefoxProfile)  # Setting up profile
+# parser = webdriver.Firefox(service=service, options=options)  # Creating webdriver
 
 
 def getCar(url):
@@ -394,10 +396,10 @@ def generationGet(currentBrand, model) -> list:
 class connectionDB:
     def __init__(self):
         self.connection = psycopg2.connect(
-            host="194.87.102.109",
-            database="CarsDB",
-            user="postgres",
-            password="CarsScrapper123!",
+            host=DATABASE_IP,
+            database=DATABASE_NAME,
+            user=DATABASE_USER,
+            password=DATABASE_PASSWORD,
         )
 
     def getCursor(self):
@@ -410,30 +412,31 @@ class connectionDB:
             f"INSERT INTO main.ads (name,year,dateOfPublish,concidence,registrationsnumber,fuelType,engineVolume,enginePower,tax,wheelDrive,color,mileage,leftSidedSW,url) VALUES ('{name}',{year},'{dateOfPublish}',{concidence},{registrationsnumber},'{fuelType}','{engineVolume}',{enginePower},{tax},'{wheelDrive}','{color}',{mileage},{leftSidedSW},'{url}')")
         self.connection.commit()
 
-
+def addSingleCarToDB(con, index):
+    index = str(index)
+    currentURL = f'https://klin.drom.ru/renault/sandero_stepway/{index}.html'
+    if not "failed" in (currentDict := getCar(currentURL)):
+        logger.info(f"Processed ID {index}")
+        con.insertData(currentDict['name'], currentDict['year'], currentDict['dateOfPublish'],
+                       currentDict['concidence'], currentDict['registrationsNumber'], currentDict['fuelType'],
+                       currentDict['volume'], currentDict['power, hp'], currentDict['tax'],
+                       currentDict['wheelDrive'], currentDict['color'], currentDict['mileage, km'],
+                       currentDict['leftSidedSW'], currentURL)
+    else:
+        logger.info(f"Detected {deCamel(currentDict.split(':')[1])} with ID {strNum}")
 def creationOfDB(lower_ind, upper_ind):
     connection = psycopg2.connect(
-        host="194.87.102.109",
-        database="CarsDB",
-        user="postgres",
-        password="CarsScrapper123!",
+        host=DATABASE_IP,
+        database=DATABASE_NAME,
+        user=DATABASE_USER,
+        password=DATABASE_PASSWORD,
     )
 
     con = connectionDB()
     initialURL = 'https://klin.drom.ru/renault/sandero_stepway/46333589.html'
     for i in range(lower_ind, upper_ind):
-        strNum = str(i)
-        currentURL = f'https://klin.drom.ru/renault/sandero_stepway/{strNum}.html'
-        if not "failed" in (currentDict := getCar(currentURL)):
-            logger.info(f"Processed ID {strNum}")
-            con.insertData(currentDict['name'], currentDict['year'], currentDict['dateOfPublish'],
-                           currentDict['concidence'], currentDict['registrationsNumber'], currentDict['fuelType'],
-                           currentDict['volume'], currentDict['power, hp'], currentDict['tax'],
-                           currentDict['wheelDrive'], currentDict['color'], currentDict['mileage, km'],
-                           currentDict['leftSidedSW'], currentURL)
-        else:
-            logger.info(f"Detected {deCamel(currentDict.split(':')[1])} with ID {strNum}")
-    parser.quit()
+        addSingleCarToDB(con, i)
+    # parser.quit()
 
 
 if __name__ == "__main__":
