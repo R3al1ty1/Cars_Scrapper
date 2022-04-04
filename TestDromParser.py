@@ -23,6 +23,9 @@ class TestDromParser(unittest.TestCase):
         url = "https://klin.drom.ru/renault/sandero_stepway/46333993.html"
         data = getCar(url)
         self.assertEqual(data["power, hp"], 69)
-
+    def testMoto(self):
+        url = "https://moto.drom.ru/novosibirsk/sale/motocikl-racer-rc300-gy8x-panther-99397031.html"
+        data = getCar(url)
+        self.assertEqual(data.split(":")[1], "motocycle")
 if __name__ == '__main__':
     unittest.main()

@@ -1,5 +1,6 @@
 import requests
 import psycopg2
+from misc import deCamel
 from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -11,7 +12,7 @@ from fake_headers import Headers
 from loguru import logger
 import json
 
-with open("colorsTranslations.json", 'r') as f:
+with open("colorsTranslations.json", 'r', encoding="utf-8") as f:
     colorsList = json.load(f)
 
 geckodriverLocation = r"/Users/Nasa/Documents/geckodriver"  # Location of geckodriver
@@ -32,7 +33,7 @@ def getCar(url):
     if response.status_code != 200:
         if response.status_code == 429:
             logger.debug("Too many requests code 429")
-        return "Do not operate with"
+        return "failed:emptyPage"
     response.encoding = response.apparent_encoding
     soup = BeautifulSoup(response.text, 'lxml')
     fieldOfSearch = soup.find_all('tr',
@@ -43,18 +44,19 @@ def getCar(url):
     uselessAd = soup.find_all('span', class_='css-1sk0lam e2rnzmt0')
     motoAd = soup.find_all('a', class_='auto-shy')
     if motoAd != []:
-        if motoAd[1].text == "Продажа мото":
-            return "Do not operate with"
-    if uselessAd[1].text == "Спецтехника и грузовики: объявления о продаже и покупке":
-        return "Do not operate with"
+        if motoAd[1].text.strip() == "Продажа мото":
+            return "failed:motocycle"
+    if uselessAd:
+        if uselessAd[1].text == "Спецтехника и грузовики: объявления о продаже и покупке":
+            return "failed:specialTransport"
     notPaidAd = soup.find_all('div', class_='css-va2nzf e1lm3vns0')
     if notPaidAd != []:
         if "Пожалуйста, не забудьте" in notPaidAd[0].text:
-            return "Do not operate with"
+            return "failed:unpaidAdvert"
     notPublished = soup.find_all('span', class_='css-ik080n e162wx9x0')
     if notPublished != []:
         if "Объявление не опубликовано." in notPublished[0].text:
-            return "Do not operate with"
+            return "failed:removedAdvert"
 
     def findName():
         titleName = soup.find_all('h1', class_='css-1pbdh72 e18vbajn0')
@@ -86,9 +88,9 @@ def getCar(url):
 
     def findVolume(fieldOfSearch):
         fuelTypesLocalisations = {"бензин": "petrol",
-                                 "дизель": "diesel",
-                                 "электро": "electric"
-                                 }
+                                  "дизель": "diesel",
+                                  "электро": "electric"
+                                  }
         engineFieldOfSearch = fieldOfSearch.find_all('td', class_='css-7whdrf ezjvm5n1')
         engineSpecs = engineFieldOfSearch[0].find_all('span')[0].text
         engineSpecs = engineSpecs.split(',')
@@ -422,7 +424,7 @@ def creationOfDB(lower_ind, upper_ind):
     for i in range(lower_ind, upper_ind):
         strNum = str(i)
         currentURL = f'https://klin.drom.ru/renault/sandero_stepway/{strNum}.html'
-        if (currentDict := getCar(currentURL)) != "Do not operate with":
+        if not "failed" in (currentDict := getCar(currentURL)):
             logger.info(f"Processed ID {strNum}")
             con.insertData(currentDict['name'], currentDict['year'], currentDict['dateOfPublish'],
                            currentDict['concidence'], currentDict['registrationsNumber'], currentDict['fuelType'],
@@ -430,11 +432,11 @@ def creationOfDB(lower_ind, upper_ind):
                            currentDict['wheelDrive'], currentDict['color'], currentDict['mileage, km'],
                            currentDict['leftSidedSW'], currentURL)
         else:
-            logger.info(f"Detected special transport with ID {strNum}")
+            logger.info(f"Detected {deCamel(currentDict.split(':')[1])} with ID {strNum}")
     parser.quit()
 
 
 if __name__ == "__main__":
     creationOfDB(46334115, 46334155)
-    with open("colorsTranslations.json", "w+") as f:
-        json.dump(colorsList,f)
+    with open("colorsTranslations.json", "w+", encoding="utf-8") as f:
+        json.dump(colorsList, f)
