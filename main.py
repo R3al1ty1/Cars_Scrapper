@@ -423,7 +423,7 @@ def addSingleCarToDB(con, index):
                        currentDict['wheelDrive'], currentDict['color'], currentDict['mileage, km'],
                        currentDict['leftSidedSW'], currentURL)
     else:
-        logger.info(f"Detected {deCamel(currentDict.split(':')[1])} with ID {strNum}")
+        logger.info(f"Detected {deCamel(currentDict.split(':')[1])} with ID {index}")
 def creationOfDB(lower_ind, upper_ind):
     connection = psycopg2.connect(
         host=DATABASE_IP,

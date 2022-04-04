@@ -27,5 +27,14 @@ class TestDromParser(unittest.TestCase):
         url = "https://moto.drom.ru/novosibirsk/sale/motocikl-racer-rc300-gy8x-panther-99397031.html"
         data = getCar(url)
         self.assertEqual(data.split(":")[1], "motocycle")
+    def testSpecialTransport(self):
+        url = "https://moscow.drom.ru/spec/hino/300/truck/loader-crane/45604595.html"
+        data = getCar(url)
+        self.assertEqual(data.split(":")[1], "specialTransport")
+    def testEmpty(self):
+        url = "https://moscow.drom.ru/spec/hino/300/truck/loader-crane/46334116.html"
+        data = getCar(url)
+        self.assertEqual(data.split(":")[1], "emptyPage")
+
 if __name__ == '__main__':
     unittest.main()
