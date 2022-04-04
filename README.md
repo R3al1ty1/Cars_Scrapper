@@ -56,6 +56,8 @@
 ## **IMPORTANT**
 ### Advertisment index - sum of all points of advertisment analysis, defines betterness and priority of selected ad
 
+- Rate an ad with the average of all params. The rating should be based on gathered required params (e.g. mileage, release year etc.)
+
 ## Import costs calculation
 ### If selected car should be imported from the foreign country, script should sum car price with import fees and estimated delivery cost
 
