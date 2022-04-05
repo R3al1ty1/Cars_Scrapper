@@ -31,7 +31,10 @@ with open("colorsTranslations.json", 'r', encoding="utf-8") as f:
 def getCar(url):
     # headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36'}
     headers = Headers().generate()
-    response = requests.get(url, headers=headers)
+    try:
+        response = requests.get(url, headers=headers, timeout=1)
+    except:
+        return "failed:timeout"
     if response.status_code != 200:
         if response.status_code == 429:
             logger.debug("Too many requests code 429")
@@ -42,7 +45,7 @@ def getCar(url):
                                   class_='css-11ylakv ezjvm5n0')  # specific row where data is stored (engine, engine volume, mileage etc.)
     foundCarFeatures = {'name': '-', 'year': 0, 'dateOfPublish': '-', 'concidence': True, 'registrationsNumber': 0,
                         'fuelType': '-', 'volume': '-', 'power, hp': 0, 'tax': 0, 'wheelDrive': '-', 'color': '-',
-                        'mileage, km': 0, 'leftSidedSW': True}
+                        'mileage, km': 0, 'leftSidedSW': True, 'city': "moscow", 'price': 0, 'ratingR': 0, 'ratingL': 0}
     uselessAd = soup.find_all('span', class_='css-1sk0lam e2rnzmt0')
     motoAd = soup.find_all('a', class_='auto-shy')
     if motoAd != []:
@@ -135,7 +138,16 @@ def getCar(url):
             saveColor = input(f"{carColor} is ")
             colorsList[carColor] = saveColor
             carColor = saveColor
+            with open("colorsTranslations.json", "w+", encoding="utf-8") as f:
+                json.dump(colorsList, f)
         return (carColor)
+
+    def findCity():
+        return response.url.split("/")[2].split(".")[0]
+
+    def findPrice():
+        carPrice = soup.find("div", class_="css-10qq2x7 e162wx9x0")
+        return int(carPrice.text.replace(u'\xa0', u'')[:-1])
 
     def computeTax(hp):
         out = 0
@@ -201,6 +213,8 @@ def getCar(url):
     #     return(fuelConsumptionClass)
     foundCarFeatures['name'] = findName()
     foundCarFeatures['year'] = findYear()
+    foundCarFeatures['city'] = findCity()
+    foundCarFeatures['price'] = findPrice()
     foundCarFeatures['dateOfPublish'] = findDateOfPublishment()
     foundCarFeatures['concidence'] = reportAnalyzer(soup)[1]
     foundCarFeatures['registrationsNumber'] = reportAnalyzer(soup)[0]
@@ -406,22 +420,24 @@ class connectionDB:
         return self.connection.cursor()
 
     def insertData(self, name, year, dateOfPublish, concidence, registrationsnumber, fuelType, engineVolume,
-                   enginePower, tax, wheelDrive, color, mileage, leftSidedSW, url):
+                   enginePower, tax, wheelDrive, color, mileage, leftSidedSW,city,price,ratingR, ratingL, url):
         curs = self.getCursor()
         curs.execute(
-            f"INSERT INTO main.ads (name,year,dateOfPublish,concidence,registrationsnumber,fuelType,engineVolume,enginePower,tax,wheelDrive,color,mileage,leftSidedSW,url) VALUES ('{name}',{year},'{dateOfPublish}',{concidence},{registrationsnumber},'{fuelType}','{engineVolume}',{enginePower},{tax},'{wheelDrive}','{color}',{mileage},{leftSidedSW},'{url}')")
+            f"INSERT INTO main.ads (name,year,dateOfPublish,concidence,registrationsnumber,fuelType,engineVolume,enginePower,tax,wheelDrive,color,mileage,leftSidedSW,city,price,rating_r,rating_l,url) VALUES ('{name}',{year},'{dateOfPublish}',{concidence},{registrationsnumber},'{fuelType}','{engineVolume}',{enginePower},{tax},'{wheelDrive}','{color}',{mileage},{leftSidedSW},'{city}', {price}, {ratingR}, {ratingL},'{url}')")
         self.connection.commit()
+        curs.close()
     def select(self, params):
         curs = self.getCursor()
         formattedParams = ""
         for param in params.keys():
             value = params[param]
             if type(value) == str:
-                value = f"'{value}'"
-            formattedParams += f"\"{param}\"={value} AND"
+                value = f"\'{value}\'"
+            formattedParams += f"{param} = {value} AND"
         formattedParams = formattedParams[:-4]
-        curs.execute(f"SELECT * from main.ads WHERE \"{param}\"={value}")
+        curs.execute(f"SELECT * from main.ads WHERE {formattedParams}")
         recievedData = curs.fetchall()
+        curs.close()
         return recievedData
     def customSelect(self, query):
         curs = self.getCursor()
@@ -441,7 +457,7 @@ def connectionInit():
     return con
 
 def isCarInDB(con, carUrl):
-    return bool(con.select({"url", carUrl}))
+    return bool(con.select({"url": carUrl}))
 def addSingleCarToDB(con, index, isUrl = False):
     index = str(index)
     if isUrl:
@@ -456,7 +472,8 @@ def addSingleCarToDB(con, index, isUrl = False):
                        currentDict['concidence'], currentDict['registrationsNumber'], currentDict['fuelType'],
                        currentDict['volume'], currentDict['power, hp'], currentDict['tax'],
                        currentDict['wheelDrive'], currentDict['color'], currentDict['mileage, km'],
-                       currentDict['leftSidedSW'], currentURL)
+                       currentDict['leftSidedSW'], currentDict['city'], currentDict['price'],
+                       currentDict['ratingR'], currentDict['ratingL'],currentURL)
     else:
         logger.info(f"Detected {deCamel(currentDict.split(':')[1])} with ID {index}")
 def creationOfDB(lower_ind, upper_ind):
@@ -468,6 +485,4 @@ def creationOfDB(lower_ind, upper_ind):
 
 
 if __name__ == "__main__":
-    creationOfDB(46334115, 46334155)
-    with open("colorsTranslations.json", "w+", encoding="utf-8") as f:
-        json.dump(colorsList, f)
+    creationOfDB(46334115, 46334190)
