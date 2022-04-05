@@ -37,6 +37,8 @@
 - [X] Color
 - [X] Power of car
 - [X] Volume of engine
+- [ ] Car price
+- [ ] Car location
 ---
 ### Side Params (Could be done later)
 - [ ] Cylinders number
