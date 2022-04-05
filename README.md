@@ -19,6 +19,10 @@
 
 ---
 
+### Point formula
+
+> 0.2 * mileage + 0.2 * advert age + 0.3 * price difference to the middle + 0.3 * car age
+
 ### Required params (If param does not exist on page, use placeholders)
 
 - [X] Mileage
