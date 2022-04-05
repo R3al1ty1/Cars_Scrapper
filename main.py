@@ -411,10 +411,45 @@ class connectionDB:
         curs.execute(
             f"INSERT INTO main.ads (name,year,dateOfPublish,concidence,registrationsnumber,fuelType,engineVolume,enginePower,tax,wheelDrive,color,mileage,leftSidedSW,url) VALUES ('{name}',{year},'{dateOfPublish}',{concidence},{registrationsnumber},'{fuelType}','{engineVolume}',{enginePower},{tax},'{wheelDrive}','{color}',{mileage},{leftSidedSW},'{url}')")
         self.connection.commit()
+    def select(self, params):
+        curs = self.getCursor()
+        formattedParams = ""
+        for param in params.keys():
+            value = params[param]
+            if type(value) == str:
+                value = f"'{value}'"
+            formattedParams += f"\"{param}\"={value} AND"
+        formattedParams = formattedParams[:-4]
+        curs.execute(f"SELECT * from main.ads WHERE \"{param}\"={value}")
+        recievedData = curs.fetchall()
+        return recievedData
+    def customSelect(self, query):
+        curs = self.getCursor()
+        curs.execute(query)
+        recievedData = curs.fetchall()
+        return recievedData
 
-def addSingleCarToDB(con, index):
+def connectionInit():
+    connection = psycopg2.connect(
+        host=DATABASE_IP,
+        database=DATABASE_NAME,
+        user=DATABASE_USER,
+        password=DATABASE_PASSWORD,
+    )
+
+    con = connectionDB()
+    return con
+
+def isCarInDB(con, carUrl):
+    return bool(con.select({"url", carUrl}))
+def addSingleCarToDB(con, index, isUrl = False):
     index = str(index)
-    currentURL = f'https://klin.drom.ru/renault/sandero_stepway/{index}.html'
+    if isUrl:
+        currentURL = index
+    else:
+        currentURL = f'https://klin.drom.ru/renault/sandero_stepway/{index}.html'
+    if isCarInDB(con, currentURL):
+        return
     if not "failed" in (currentDict := getCar(currentURL)):
         logger.info(f"Processed ID {index}")
         con.insertData(currentDict['name'], currentDict['year'], currentDict['dateOfPublish'],
@@ -425,14 +460,7 @@ def addSingleCarToDB(con, index):
     else:
         logger.info(f"Detected {deCamel(currentDict.split(':')[1])} with ID {index}")
 def creationOfDB(lower_ind, upper_ind):
-    connection = psycopg2.connect(
-        host=DATABASE_IP,
-        database=DATABASE_NAME,
-        user=DATABASE_USER,
-        password=DATABASE_PASSWORD,
-    )
-
-    con = connectionDB()
+    con = connectionInit()
     initialURL = 'https://klin.drom.ru/renault/sandero_stepway/46333589.html'
     for i in range(lower_ind, upper_ind):
         addSingleCarToDB(con, i)
