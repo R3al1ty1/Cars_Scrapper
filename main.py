@@ -1,3 +1,5 @@
+import time
+
 from misc import deCamel
 from bs4 import BeautifulSoup
 from selenium import webdriver
@@ -28,16 +30,16 @@ with open("colorsTranslations.json", 'r', encoding="utf-8") as f:
 # parser = webdriver.Firefox(service=service, options=options)  # Creating webdriver
 
 
-def getCar(url):
+def getCar(url, proxy = None):
     # headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36'}
     headers = Headers().generate()
     try:
-        response = requests.get(url, headers=headers, timeout=1)
+        response = requests.get(url, headers=headers, timeout=2, proxies=proxy)
     except:
         return "failed:timeout"
     if response.status_code != 200:
         if response.status_code == 429:
-            logger.debug("Too many requests code 429")
+            return "failed:tooManyRequests"
         return "failed:emptyPage"
     response.encoding = response.apparent_encoding
     soup = BeautifulSoup(response.text, 'lxml')
@@ -87,6 +89,8 @@ def getCar(url):
     def findMileage(fieldOfSearch):
         mileage = fieldOfSearch.find_all('td', class_='css-7whdrf ezjvm5n1')
         textForamtOfMileage = mileage[0].text
+        if "б/п" in textForamtOfMileage:
+            return 0
         textForamtOfMileage = textForamtOfMileage.replace('\xa0', '').strip()
         textForamtOfMileage = int(textForamtOfMileage.split(",")[0])
         return (textForamtOfMileage)
@@ -215,6 +219,7 @@ def getCar(url):
     foundCarFeatures['year'] = findYear()
     foundCarFeatures['city'] = findCity()
     foundCarFeatures['price'] = findPrice()
+    foundCarFeatures['url'] = response.url
     foundCarFeatures['dateOfPublish'] = findDateOfPublishment()
     foundCarFeatures['concidence'] = reportAnalyzer(soup)[1]
     foundCarFeatures['registrationsNumber'] = reportAnalyzer(soup)[0]
@@ -458,7 +463,7 @@ def connectionInit():
 
 def isCarInDB(con, carUrl):
     return bool(con.select({"url": carUrl}))
-def addSingleCarToDB(con, index, isUrl = False):
+def addSingleCarToDB(con, index, isUrl = False, proxy = None):
     index = str(index)
     if isUrl:
         currentURL = index
@@ -466,14 +471,14 @@ def addSingleCarToDB(con, index, isUrl = False):
         currentURL = f'https://klin.drom.ru/renault/sandero_stepway/{index}.html'
     if isCarInDB(con, currentURL):
         return
-    if not "failed" in (currentDict := getCar(currentURL)):
+    if not "failed" in (currentDict := getCar(currentURL, proxy)):
         logger.info(f"Processed ID {index}")
         con.insertData(currentDict['name'], currentDict['year'], currentDict['dateOfPublish'],
                        currentDict['concidence'], currentDict['registrationsNumber'], currentDict['fuelType'],
                        currentDict['volume'], currentDict['power, hp'], currentDict['tax'],
                        currentDict['wheelDrive'], currentDict['color'], currentDict['mileage, km'],
                        currentDict['leftSidedSW'], currentDict['city'], currentDict['price'],
-                       currentDict['ratingR'], currentDict['ratingL'],currentURL)
+                       currentDict['ratingR'], currentDict['ratingL'],currentDict['url'])
     else:
         logger.info(f"Detected {deCamel(currentDict.split(':')[1])} with ID {index}")
 def creationOfDB(lower_ind, upper_ind):
