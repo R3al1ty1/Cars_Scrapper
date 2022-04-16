@@ -37,6 +37,8 @@
 - [X] Color
 - [X] Power of car
 - [X] Volume of engine
+- [ ] Car price
+- [ ] Car location
 ---
 ### Side Params (Could be done later)
 - [ ] Cylinders number
@@ -55,6 +57,11 @@
 
 ## **IMPORTANT**
 ### Advertisment index - sum of all points of advertisment analysis, defines betterness and priority of selected ad
+
+- Rate an ad with the average of all params. The rating should be based on gathered required params (e.g. mileage, release year etc.)
+
+
+> 0.2 * mileage + 0.2 * advert age + 0.3 * price difference to the middle + 0.3 * car age
 
 ## Import costs calculation
 ### If selected car should be imported from the foreign country, script should sum car price with import fees and estimated delivery cost
