@@ -8,10 +8,11 @@ from selenium.webdriver.firefox.service import Service
 from selenium.webdriver.firefox.options import Options
 from transliterate import translit, get_available_language_codes
 from fake_headers import Headers
+from constants import *
 from loguru import logger
 
-geckodriverLocation = r"/Users/user/Documents/geckodriver" # Location of geckodriver
-firefoxProfile = r"/Users/user/Library/Application Support/Firefox/Profiles/459ixwje.default" # Selected Firefox profile
+geckodriverLocation = GECKODRIVER_LOCATION # Location of geckodriver
+firefoxProfile = FIREFOX_PROFILE # Selected Firefox profile
 
 service = Service(geckodriverLocation) # Setting up location
 
