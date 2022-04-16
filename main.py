@@ -19,8 +19,8 @@ import json
 with open("colorsTranslations.json", 'r', encoding="utf-8") as f:
     colorsList = json.load(f)
 
-# geckodriverLocation = r"/Users/Nasa/Documents/geckodriver"  # Location of geckodriver
-# firefoxProfile = r"/Users/Nasa/Library/Application Support/Firefox/Profiles/459ixwje.default"  # Selected Firefox profile
+# geckodriverLocation = GECKODRIVER_LOCATION  # Location of geckodriver
+# firefoxProfile = FIREFOX_PROFILE  # Selected Firefox profile
 #
 # service = Service(geckodriverLocation)  # Setting up location
 #
